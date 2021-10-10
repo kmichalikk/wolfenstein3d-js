@@ -1,4 +1,4 @@
-import { Vec2, TileColor, mapColor, Tile } from './utils';
+import { Vec2, WallData, TileType, Tile } from './utils';
 
 const canvasSidePx = 512;
 const canvasSideTiles = 16;
@@ -9,23 +9,25 @@ canvas.width = canvasSidePx;
 canvas.height = canvasSidePx;
 let context: CanvasRenderingContext2D = canvas.getContext('2d')!;
 
-let color: TileColor = TileColor.none;
-let colorSelect: HTMLSelectElement = document.createElement("select");
-for (let color = 0; color < 5; color++) {
-	let opt = document.createElement("option") as HTMLOptionElement;
-	opt.value = color.toString();
-	opt.innerText = mapColor(color);
-	colorSelect.append(opt);
+let buttonsDiv = document.createElement("div") as HTMLDivElement;
+let tileTemplate: Tile = { type: TileType.Empty, detail: 0 };
+// buttony do wyboru ściany
+let emptyButton = document.createElement("button") as HTMLButtonElement;
+emptyButton.innerText = "Wyczyść";
+emptyButton.onclick = () => { tileTemplate = { type: TileType.Empty, detail: 0 } };
+buttonsDiv.append(emptyButton);
+for (let i in WallData) {
+	let button = document.createElement("button") as HTMLButtonElement;
+	button.innerText = WallData[i].name;
+	button.onclick = () => { tileTemplate = { type: TileType.Wall, detail: parseInt(i) } };
+	buttonsDiv.append(button);
 }
-colorSelect.addEventListener('change', (event) => {
-	color = parseInt(colorSelect.value) as TileColor;
-})
 
 let exportButton: HTMLButtonElement = document.createElement("button");
 exportButton.innerText = "Eksportuj";
 exportButton.addEventListener("click", () => {
 	let blob: Blob = new Blob([JSON.stringify({
-		data: tiles.map(val => val.map(val => val.color)),
+		data: tiles,
 		width: 16,
 		height: 16
 	})], { type: "application/json" });
@@ -36,7 +38,7 @@ exportButton.addEventListener("click", () => {
 	a.click();
 });
 
-document.body.append(colorSelect, canvas, exportButton);
+document.body.append(buttonsDiv, document.createElement("br"), canvas, document.createElement("br"), exportButton);
 
 let canvasSizeRatio: Vec2 = new Vec2(canvas.offsetWidth / canvasSidePx, canvas.offsetHeight / canvasSidePx);
 window.addEventListener("resize", () => {
@@ -48,7 +50,7 @@ let tiles: Tile[][] = [];
 for (let i = 0; i < canvasSideTiles; i++) {
 	tiles.push([]);
 	for (let j = 0; j < canvasSideTiles; j++) {
-		tiles[i].push({ color: TileColor.none, pos: new Vec2(i * tileSidePx, j * tileSidePx) });
+		tiles[i].push({ type: TileType.Empty, detail: 0 });
 	}
 }
 
@@ -56,22 +58,20 @@ let canvasMoveHandler = (event: MouseEvent) => {
 	let cursorPos: Vec2 = new Vec2(event.pageX - canvas.offsetLeft, event.pageY - canvas.offsetTop);
 	let adjustedCursorPos: Vec2 = cursorPos.divideVec(canvasSizeRatio);
 	let tilePos: Vec2 = adjustedCursorPos.divideScalar(tileSidePx).floor();
-	console.log(tilePos)
-	tiles[tilePos.x][tilePos.y].color = color;
+	tiles[tilePos.x][tilePos.y] = tileTemplate;
 }
 canvas.addEventListener('mousedown', () => canvas.addEventListener('mousemove', canvasMoveHandler));
 canvas.addEventListener('mouseup', () => canvas.removeEventListener('mousemove', canvasMoveHandler));
 
 let drawLoop = () => {
 	context.clearRect(0, 0, canvasSidePx, canvasSidePx);
-	for (let row of tiles) {
-		for (let tile of row) {
-			context.fillStyle = mapColor(tile.color);
-			context.fillRect(tile.pos.x, tile.pos.y, tileSidePx, tileSidePx);
+	for (let i in tiles) {
+		for (let j in tiles[i]) {
+			context.fillStyle = tiles[i][j].type == TileType.Empty ? 'lightgray' : WallData[tiles[i][j].detail].color;
+			context.fillRect(parseInt(i) * tileSidePx, parseInt(j) * tileSidePx, tileSidePx, tileSidePx);
 		}
 	}
 	requestAnimationFrame(drawLoop);
 }
 
-document.body.append(colorSelect, document.createElement("br"), canvas, document.createElement("br"), exportButton);
 requestAnimationFrame(drawLoop);

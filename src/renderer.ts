@@ -1,8 +1,10 @@
-import { Vec2, Directions, mapColor } from './utils';
+const texture = require('./gfx/texture.png');
+import { Vec2, Directions, Tile, TileType, WallData } from './utils';
 
 interface CollisionInfo {
 	collides: Boolean,
 	endTile: Vec2,
+	sideXCoord: number,
 	distance: number
 }
 
@@ -11,7 +13,8 @@ class Renderer {
 	private dom: HTMLDivElement;
 	private debugInfo: HTMLDivElement;
 	private drawContext: CanvasRenderingContext2D;
-	private levelData: ({ width: number, height: number, data: number[][] } | null);
+	private texture: HTMLImageElement;
+	private levelData: ({ width: number, height: number, data: Tile[][] } | null);
 	private cameraPosition: Vec2;
 	private cameraDirectionNormalized: Vec2;
 	private screenPlane: Vec2;
@@ -22,7 +25,7 @@ class Renderer {
 	// kontrolki - do komunikacji z pętlą renderingu
 	private renderStop: Boolean = false;
 
-	constructor(screenDimensions: Vec2) {
+	constructor(screenDimensions: Vec2, texture: HTMLImageElement) {
 		this.screenDimesions = screenDimensions;
 		this.canvas = document.createElement('canvas');
 		this.canvas.width = this.screenDimesions.x;
@@ -30,6 +33,7 @@ class Renderer {
 		this.canvas.style.width = "70%";
 		this.canvas.style.height = "auto";
 		this.drawContext = this.canvas.getContext('2d')!;
+		this.texture = texture;
 		this.dom = document.createElement('div');
 		this.debugInfo = document.createElement('div');
 		this.dom.append(this.debugInfo, this.canvas);
@@ -50,7 +54,7 @@ class Renderer {
 
 	getDOM(): HTMLDivElement { return this.dom; }
 
-	loadLevel = (levelData: { width: number, height: number, data: number[][] }) => {
+	loadLevel = (levelData: { width: number, height: number, data: Tile[][] }) => {
 		this.renderStop = true;
 		// todo: sprawdzanie poprawności danych
 		// todo: zmienny rozmiar planszy
@@ -64,7 +68,7 @@ class Renderer {
 		requestAnimationFrame(this.gameLoop);
 	}
 
-	raycast = (ray: Vec2): CollisionInfo => {
+	raycast = (ray: Vec2, fishEyeCorr: number = 1): CollisionInfo => {
 		let currentTile: Vec2 = this.cameraPosition.floor();
 		// długość jaką przejdzie promień w x-ach przy y = 1
 		let deltaDistanceX: number = Math.sqrt(1 + (ray.y / ray.x) ** 2);
@@ -134,17 +138,43 @@ class Renderer {
 				// ustawiamy znalezione pole na pole, na którym jesteśmy
 				currentTile = this.cameraPosition.floor();
 			}
-			else if (this.levelData!.data[currentTile.x][currentTile.y] > 0) {
+			else if (this.levelData!.data[currentTile.x][currentTile.y].type != TileType.Empty) {
 				isHit = true;
 			}
 		}
 
+		let distance;
+		let sideXCoord;
 		switch (hitDirection!) {
 			case Directions.North:
-			case Directions.South: return { collides: true, endTile: currentTile, distance: deltaSumY - deltaDistanceY }; break;
+				distance = (deltaSumY - deltaDistanceY) * fishEyeCorr;
+				sideXCoord = this.cameraPosition.x + ray.x * distance;
+				sideXCoord -= Math.floor(sideXCoord);
+				break;
+			case Directions.South:
+				distance = (deltaSumY - deltaDistanceY) * fishEyeCorr;
+				sideXCoord = this.cameraPosition.x + ray.x * distance;
+				sideXCoord -= Math.floor(sideXCoord);
+				sideXCoord = 1 - sideXCoord;
+				break;
 			case Directions.West:
-			case Directions.East: return { collides: true, endTile: currentTile, distance: deltaSumX - deltaDistanceX }; break;
+				distance = (deltaSumX - deltaDistanceX) * fishEyeCorr;
+				sideXCoord = this.cameraPosition.y + ray.y * distance;
+				sideXCoord -= Math.floor(sideXCoord);
+				sideXCoord = 1 - sideXCoord;
+				break;
+			case Directions.East:
+				distance = (deltaSumX - deltaDistanceX) * fishEyeCorr;
+				sideXCoord = this.cameraPosition.y + ray.y * distance;
+				sideXCoord -= Math.floor(sideXCoord);
+				break;
 		}
+		return {
+			collides: true,
+			endTile: currentTile,
+			sideXCoord: sideXCoord,
+			distance: distance
+		};
 	}
 
 	gameLoop = () => {
@@ -158,6 +188,8 @@ class Renderer {
 			// ########################
 			// ### obsługa ruchu gracza
 			// ########################
+			this.cameraDirectionNormalized.rotate(this.playerMovement.rotate * 0.01);
+			this.screenPlane.rotate(this.playerMovement.rotate * 0.01);
 			let collisionInfo = this.raycast(this.playerMovement.forward > 0
 				? this.cameraDirectionNormalized : this.cameraDirectionNormalized.multiplyScalar(-1));
 			if (this.playerMovement.forward != 0) {
@@ -167,9 +199,7 @@ class Renderer {
 						this.cameraDirectionNormalized.multiplyScalar(this.playerMovement.forward));
 				}
 			}
-			this.cameraDirectionNormalized.rotate(this.playerMovement.rotate * 0.01);
-			this.screenPlane.rotate(this.playerMovement.rotate * 0.01);
-			this.debugInfo.innerText = `(${this.cameraPosition.x.toFixed(2)}, ${this.cameraPosition.y.toFixed(2)}) / ${collisionInfo.distance.toFixed(2)}`;
+			this.debugInfo.innerText = `(${this.cameraPosition.x.toFixed(2)}, ${this.cameraPosition.y.toFixed(2)}) / (${this.cameraDirectionNormalized.x.toFixed(2)}, ${this.cameraDirectionNormalized.y.toFixed(2)}) /${collisionInfo.distance.toFixed(2)} / ${collisionInfo.sideXCoord.toFixed(2)}`;
 
 			// ################
 			// ### renderowanie
@@ -183,16 +213,18 @@ class Renderer {
 				let screenLineNormalized: number = 2 * screenLine / this.screenDimesions.x - 1;
 				let currentRay: Vec2 = this.cameraDirectionNormalized.addVec(
 					this.screenPlane.multiplyScalar(screenLineNormalized));
-				let collisionInfo = this.raycast(currentRay);
+				let collisionInfo = this.raycast(currentRay, this.cameraDirectionNormalized.length() / currentRay.length());
 				// nawet jeśli collisionInfo.collides byłoby false, nie ma problemu
 				// ponieważ wtedy narysuje to co jest pod graczem, czyli nic
-				this.drawContext.strokeStyle = mapColor(this.levelData!.data[collisionInfo.endTile.x][collisionInfo.endTile.y]);
-				let lineHeight = Math.round(this.screenDimesions.y / collisionInfo.distance * 1.5);
-				let lineStartY = (this.screenDimesions.y - lineHeight) / 2;
-				this.drawContext.beginPath();
-				this.drawContext.moveTo(screenLine, lineStartY);
-				this.drawContext.lineTo(screenLine, lineStartY + lineHeight);
-				this.drawContext.stroke();
+				let tile = this.levelData!.data[collisionInfo.endTile.x][collisionInfo.endTile.y];
+				if (tile.type == TileType.Wall) {
+					let p = WallData[tile.detail].pos;
+					let s = WallData[tile.detail].size;
+					let lineHeight = Math.round(this.screenDimesions.y / collisionInfo.distance * 1.5);
+					let lineStartY = (this.screenDimesions.y - lineHeight) / 2;
+					// this.drawContext.drawImage(this.texture, p.x + collisionInfo.sideXCoord * s.x, p.y, 1, s.y, screenLine, lineStartY, 1, lineHeight);
+					this.drawContext.drawImage(this.texture, p.x + collisionInfo.sideXCoord * s.x, 0, 1, 256, screenLine, lineStartY, 1, lineHeight);
+				}
 			}
 			requestAnimationFrame(this.gameLoop);
 		}

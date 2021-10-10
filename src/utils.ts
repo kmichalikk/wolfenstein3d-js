@@ -1,3 +1,4 @@
+
 class Vec2 {
 	x: number;
 	y: number;
@@ -40,27 +41,30 @@ class Vec2 {
 	}
 }
 
-enum TileColor {
-	none = 0,
-	red = 1,
-	green = 2,
-	blue = 3,
-	gray = 4
+interface TextureInfo {
+	name: string;
+	color: string;
+	pos: Vec2;
+	size: Vec2;
 }
 
-function mapColor(tileColor: TileColor) {
-	switch (tileColor) {
-		case TileColor.red: return "red"; break;
-		case TileColor.blue: return "blue"; break;
-		case TileColor.green: return "green"; break;
-		case TileColor.gray: return "gray"; break;
-		default: return "lightgray"
-	}
+
+let WallData: TextureInfo[] = [
+	{ name: "cobblestone", color: "blue", pos: new Vec2(0, 0), size: new Vec2(256, 256) },
+	{ name: "bricks", color: "gray", pos: new Vec2(256, 0), size: new Vec2(256, 256) },
+	{ name: "wood", color: "brown", pos: new Vec2(512, 0), size: new Vec2(256, 256) },
+]
+
+enum TileType {
+	Empty,
+	Wall,
+	Collectible,
+	Enemy
 }
 
 interface Tile {
-	color: TileColor;
-	pos: Vec2;
+	type: TileType;
+	detail: number;
 }
 
 enum Directions {
@@ -70,4 +74,4 @@ enum Directions {
 	West
 }
 
-export { Vec2, TileColor, mapColor, Tile, Directions };
+export { Vec2, TextureInfo, WallData, TileType, Tile, Directions };
