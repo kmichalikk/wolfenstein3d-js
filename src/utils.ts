@@ -19,6 +19,9 @@ class Vec2 {
 	addVec(vec2: Vec2): Vec2 {
 		return new Vec2(this.x + vec2.x, this.y + vec2.y);
 	}
+	subtractVec(vec2: Vec2): Vec2 {
+		return new Vec2(this.x - vec2.x, this.y - vec2.y);
+	}
 	divideScalar(scalar: number): Vec2 {
 		if (scalar != 0)
 			return new Vec2(this.x / scalar, this.y / scalar);
@@ -55,6 +58,11 @@ let WallData: TextureInfo[] = [
 	{ name: "wood", color: "brown", pos: new Vec2(512, 0), size: new Vec2(256, 256) },
 ]
 
+let CollectibleData: TextureInfo[] = [
+	{ name: "gold", color: "gold", pos: new Vec2(0, 256), size: new Vec2(256, 256) },
+	{ name: "medkit", color: "pink", pos: new Vec2(256, 256), size: new Vec2(256, 256) }
+]
+
 enum TileType {
 	Empty,
 	Wall,
@@ -74,4 +82,4 @@ enum Directions {
 	West
 }
 
-export { Vec2, TextureInfo, WallData, TileType, Tile, Directions };
+export { Vec2, TextureInfo, WallData, CollectibleData, TileType, Tile, Directions };

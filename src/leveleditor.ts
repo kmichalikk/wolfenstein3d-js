@@ -1,4 +1,4 @@
-import { Vec2, WallData, TileType, Tile } from './utils';
+import { Vec2, WallData, TileType, Tile, CollectibleData } from './utils';
 
 const canvasSidePx = 512;
 const canvasSideTiles = 16;
@@ -20,6 +20,12 @@ for (let i in WallData) {
 	let button = document.createElement("button") as HTMLButtonElement;
 	button.innerText = WallData[i].name;
 	button.onclick = () => { tileTemplate = { type: TileType.Wall, detail: parseInt(i) } };
+	buttonsDiv.append(button);
+}
+for (let i in CollectibleData) {
+	let button = document.createElement("button") as HTMLButtonElement;
+	button.innerText = CollectibleData[i].name;
+	button.onclick = () => { tileTemplate = { type: TileType.Collectible, detail: parseInt(i) } };
 	buttonsDiv.append(button);
 }
 
