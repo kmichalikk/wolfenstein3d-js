@@ -39,5 +39,9 @@ module.exports = {
 	resolve: {
 		extensions: [ '.tsx', '.ts', '.js' ]
 	},
-	watch: true
+	devServer: {
+		static: {
+			directory: path.resolve(__dirname, "/dist")
+		}
+	}
 }

@@ -5,7 +5,9 @@ interface CollisionInfo {
 	collides: Boolean,
 	endTile: Vec2,
 	sideXCoord: number,
-	distance: number
+	distance: number,
+	renderDistance: number,
+	hitDirection: Directions
 }
 
 interface Collectible {
@@ -129,28 +131,17 @@ class Renderer {
 		let isHit: Boolean = false;
 		let isTooLong: Boolean = false;
 		let hitDirection: Directions;
+
+		let doorCollisionDistance: number = Infinity;
 		// algorytm DDA
 		while (!isHit && !isTooLong) {
-			// jeśli odległość po y jest większa niż po x,
-			// to aktualnie poruszamy się po x => dotykamy ścian horyzontalnie
-			if (deltaSumX < deltaSumY) {
-				deltaSumX += deltaDistanceX;
-				currentTile.x += step.x;
-				hitDirection = step.x > 0 ? Directions.East : Directions.West;
-			}
-			// odwrotnie jak wyżej
-			else {
-				deltaSumY += deltaDistanceY;
-				currentTile.y += step.y;
-				hitDirection = step.y > 0 ? Directions.South : Directions.North;
-			}
 			if (
 				currentTile.x < 0
 				|| currentTile.x >= this.levelData!.width
 				|| currentTile.y < 0
 				|| currentTile.y >= this.levelData!.height) {
 				// nie liczymy dalej, jeśli promień wykracza za planszę
-				// inaczej mieli byśmy nieskończoną pętlę
+				// inaczej mielibyśmy nieskończoną pętlę
 				isTooLong = true;
 				// jeśli już jesteśmy na ostatnim nie osłoniętym polu, algorytm idzie dalej w świat
 				// promień wskazywałby na miejsce oddalone od planszy o cały wymiar tej planszy
@@ -160,31 +151,82 @@ class Renderer {
 			else if (this.levelData!.data[currentTile.x][currentTile.y].type == TileType.Wall) {
 				isHit = true;
 			}
+			else if (this.levelData!.data[currentTile.x][currentTile.y].type == TileType.Door) {
+				// let openness = this.levelData!.data[currentTile.x][currentTile.y].detail;
+				let openness = 0.5; // 0 do 1 1=otwarte
+				if (hitDirection! == Directions.East || hitDirection! == Directions.West) {
+					doorCollisionDistance = (deltaSumX - deltaDistanceX) * fishEyeCorr;
+					let doorCoord = this.cameraPosition.y + ray.y * ((deltaSumX - deltaDistanceX / 2) * fishEyeCorr);
+					doorCoord -= Math.floor(doorCoord);
+					if (hitDirection == Directions.West) doorCoord = 1 - doorCoord;
+					if (deltaSumX - deltaDistanceX / 2 < deltaSumY && doorCoord > openness) {
+						deltaSumX += deltaDistanceX / 2;
+						hitDirection = step.x > 0 ? Directions.East : Directions.West;
+						isHit = true;
+					}
+					else if (deltaSumY < deltaSumX) {
+						deltaSumY += deltaDistanceY;
+						hitDirection = step.y > 0 ? Directions.South : Directions.North;
+						isHit = true;
+					}
+				}
+				else {
+					doorCollisionDistance = (deltaSumY - deltaDistanceY) * fishEyeCorr;
+					let doorCoord = this.cameraPosition.x + ray.x * ((deltaSumY - deltaDistanceY / 2) * fishEyeCorr);
+					doorCoord -= Math.floor(doorCoord);
+					if (hitDirection! == Directions.South) doorCoord = 1 - doorCoord;
+					if (deltaSumY - deltaDistanceY / 2 < deltaSumX && doorCoord > openness) {
+						deltaSumY += deltaDistanceY / 2;
+						hitDirection = step.y > 0 ? Directions.South : Directions.North;
+						isHit = true;
+					}
+					else if (deltaSumX < deltaSumY) {
+						deltaSumX += deltaDistanceX;
+						hitDirection = step.x > 0 ? Directions.East : Directions.West;
+						isHit = true;
+					}
+				}
+			}
+			// jeśli odległość po y jest większa niż po x,
+			// to aktualnie poruszamy się po x => dotykamy ścian horyzontalnie
+			if (!isHit && !isTooLong) {
+				if (deltaSumX < deltaSumY) {
+					deltaSumX += deltaDistanceX;
+					currentTile.x += step.x;
+					hitDirection = step.x > 0 ? Directions.East : Directions.West;
+				}
+				// odwrotnie jak wyżej
+				else {
+					deltaSumY += deltaDistanceY;
+					currentTile.y += step.y;
+					hitDirection = step.y > 0 ? Directions.South : Directions.North;
+				}
+			}
 		}
 
-		let distance;
+		let renderDistance;
 		let sideXCoord;
 		switch (hitDirection!) {
 			case Directions.North:
-				distance = (deltaSumY - deltaDistanceY) * fishEyeCorr;
-				sideXCoord = this.cameraPosition.x + ray.x * distance;
+				renderDistance = (deltaSumY - deltaDistanceY) * fishEyeCorr;
+				sideXCoord = this.cameraPosition.x + ray.x * renderDistance;
 				sideXCoord -= Math.floor(sideXCoord);
 				break;
 			case Directions.South:
-				distance = (deltaSumY - deltaDistanceY) * fishEyeCorr;
-				sideXCoord = this.cameraPosition.x + ray.x * distance;
+				renderDistance = (deltaSumY - deltaDistanceY) * fishEyeCorr;
+				sideXCoord = this.cameraPosition.x + ray.x * renderDistance;
 				sideXCoord -= Math.floor(sideXCoord);
 				sideXCoord = 1 - sideXCoord;
 				break;
 			case Directions.West:
-				distance = (deltaSumX - deltaDistanceX) * fishEyeCorr;
-				sideXCoord = this.cameraPosition.y + ray.y * distance;
+				renderDistance = (deltaSumX - deltaDistanceX) * fishEyeCorr;
+				sideXCoord = this.cameraPosition.y + ray.y * renderDistance;
 				sideXCoord -= Math.floor(sideXCoord);
 				sideXCoord = 1 - sideXCoord;
 				break;
 			case Directions.East:
-				distance = (deltaSumX - deltaDistanceX) * fishEyeCorr;
-				sideXCoord = this.cameraPosition.y + ray.y * distance;
+				renderDistance = (deltaSumX - deltaDistanceX) * fishEyeCorr;
+				sideXCoord = this.cameraPosition.y + ray.y * renderDistance;
 				sideXCoord -= Math.floor(sideXCoord);
 				break;
 		}
@@ -192,7 +234,8 @@ class Renderer {
 			collides: true,
 			endTile: currentTile,
 			sideXCoord: sideXCoord,
-			distance: distance
+			distance: doorCollisionDistance != Infinity ? doorCollisionDistance : renderDistance, renderDistance: renderDistance,
+			hitDirection: hitDirection
 		};
 	}
 
@@ -207,6 +250,7 @@ class Renderer {
 			// ########################
 			// ### obsługa ruchu gracza
 			// ########################
+			console.clear();
 			this.cameraDirectionNormalized.rotate(this.playerMovement.rotate * 0.01);
 			this.screenPlane.rotate(this.playerMovement.rotate * 0.01);
 			let collisionInfo = this.raycast(this.playerMovement.forward > 0
@@ -244,9 +288,15 @@ class Renderer {
 				if (tile.type == TileType.Wall) {
 					let p = WallData[tile.detail].pos;
 					let s = WallData[tile.detail].size;
-					let lineHeight = Math.round(this.screenDimesions.y / collisionInfo.distance);
+					let lineHeight = Math.round(this.screenDimesions.y / collisionInfo.renderDistance);
 					let lineStartY = (this.screenDimesions.y - lineHeight) / 2;
 					this.drawContext.drawImage(this.texture, p.x + collisionInfo.sideXCoord * s.x, 0, 1, 256,
+						screenLine, lineStartY, 1, lineHeight);
+				}
+				else if (tile.type == TileType.Door) {
+					let lineHeight = Math.round(this.screenDimesions.y / collisionInfo.renderDistance);
+					let lineStartY = (this.screenDimesions.y - lineHeight) / 2;
+					this.drawContext.drawImage(this.texture, 768 + collisionInfo.sideXCoord * 256, 0, 1, 256,
 						screenLine, lineStartY, 1, lineHeight);
 				}
 			}
@@ -262,7 +312,6 @@ class Renderer {
 			}
 			// same indeksy, posortowane
 			let collectibleIndexes: number[] = collectiblesDistance.sort((a, b) => b.distance - a.distance).map(val => val.i);
-			console.clear();
 			for (let cbi of collectibleIndexes) {
 				// pozycja znajdźki względem gracza
 				let cbPosRelative: Vec2 = this.collectibleData[cbi].pos.subtractVec(this.cameraPosition);
@@ -275,7 +324,6 @@ class Renderer {
 				);
 
 				let spriteScreenX = Math.floor((this.screenDimesions.x / 2) * (1 + transform.x / transform.y));
-				// console.log(cbPosRelative.x.toFixed(2), cbPosRelative.y.toFixed(2), transform.x.toFixed(2), transform.y.toFixed(2), spriteScreenX);
 
 				let spriteHeight = Math.abs(Math.floor(this.screenDimesions.y / transform.y));
 				let drawStartY = Math.floor(-spriteHeight / 2 + this.screenDimesions.y / 2);
@@ -291,7 +339,6 @@ class Renderer {
 				let s = CollectibleData[this.collectibleData[cbi].type].size;
 				let p = CollectibleData[this.collectibleData[cbi].type].pos;
 				let texWidthRatio = s.x / spriteWidth;
-				console.log(transform.x.toFixed(2), transform.y.toFixed(2), drawStartX, drawEndX - drawStartX, drawStartY, drawEndY - drawStartY);
 				for (let line = drawStartX > 0 ? drawStartX : 0; line < drawEndX; line++) {
 					let texX = line - drawStartX;
 					texX *= texWidthRatio;

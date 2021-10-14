@@ -13,9 +13,14 @@ let buttonsDiv = document.createElement("div") as HTMLDivElement;
 let tileTemplate: Tile = { type: TileType.Empty, detail: 0 };
 // buttony do wyboru ściany
 let emptyButton = document.createElement("button") as HTMLButtonElement;
-emptyButton.innerText = "Wyczyść";
+emptyButton.innerText = "erase";
 emptyButton.onclick = () => { tileTemplate = { type: TileType.Empty, detail: 0 } };
 buttonsDiv.append(emptyButton);
+// button do wyboru drzwi
+let doorButton = document.createElement("button") as HTMLButtonElement;
+doorButton.innerText = "door";
+doorButton.onclick = () => { tileTemplate = { type: TileType.Door, detail: 0 } };
+buttonsDiv.append(doorButton);
 for (let i in WallData) {
 	let button = document.createElement("button") as HTMLButtonElement;
 	button.innerText = WallData[i].name;
@@ -73,7 +78,14 @@ let drawLoop = () => {
 	context.clearRect(0, 0, canvasSidePx, canvasSidePx);
 	for (let i in tiles) {
 		for (let j in tiles[i]) {
-			context.fillStyle = tiles[i][j].type == TileType.Empty ? 'lightgray' : WallData[tiles[i][j].detail].color;
+			let color = "lightgray";
+			if (tiles[i][j].type == TileType.Wall)
+				color = WallData[tiles[i][j].detail].color;
+			else if (tiles[i][j].type == TileType.Collectible)
+				color = CollectibleData[tiles[i][j].detail].color;
+			else if (tiles[i][j].type == TileType.Door)
+				color = "cyan";
+			context.fillStyle = color;
 			context.fillRect(parseInt(i) * tileSidePx, parseInt(j) * tileSidePx, tileSidePx, tileSidePx);
 		}
 	}

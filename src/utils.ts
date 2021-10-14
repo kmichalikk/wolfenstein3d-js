@@ -66,6 +66,7 @@ let CollectibleData: TextureInfo[] = [
 enum TileType {
 	Empty,
 	Wall,
+	Door,
 	Collectible,
 	Enemy
 }
