@@ -1,3 +1,7 @@
+interface Vec2Interface {
+	x: number;
+	y: number;
+}
 
 class Vec2 {
 	x: number;
@@ -42,6 +46,9 @@ class Vec2 {
 		this.x = Math.cos(radians) * oldX - Math.sin(radians) * oldY;
 		this.y = Math.sin(radians) * oldX + Math.cos(radians) * oldY;
 	}
+	getRaw(): Vec2Interface {
+		return { x: this.x, y: this.y };
+	}
 }
 
 interface TextureInfo {
@@ -50,7 +57,6 @@ interface TextureInfo {
 	pos: Vec2;
 	size: Vec2;
 }
-
 
 let WallData: TextureInfo[] = [
 	{ name: "cobblestone", color: "blue", pos: new Vec2(0, 0), size: new Vec2(256, 256) },
@@ -63,6 +69,7 @@ let CollectibleData: TextureInfo[] = [
 	{ name: "medkit", color: "pink", pos: new Vec2(256, 256), size: new Vec2(256, 256) }
 ]
 
+// deprecated
 enum TileType {
 	Empty,
 	Wall,
@@ -71,9 +78,34 @@ enum TileType {
 	Enemy
 }
 
+// deprecated
 interface Tile {
 	type: TileType;
 	detail: number;
+}
+
+enum LevelElemType {
+	Empty,
+	Wall,
+	Secret,
+	Door,
+	Collectible,
+	Enemy,
+	Player
+}
+
+interface LevelElem {
+	type: LevelElemType;
+	typeExtended: number;
+	position: Vec2Interface;
+	texCoord: Vec2Interface;
+	facingDirection?: Directions;
+}
+
+enum WallTypes {
+	Rock,
+	Brick,
+	Wood
 }
 
 enum Directions {
@@ -83,4 +115,4 @@ enum Directions {
 	West
 }
 
-export { Vec2, TextureInfo, WallData, CollectibleData, TileType, Tile, Directions };
+export { Vec2, TextureInfo, WallData, CollectibleData, TileType, Tile, Directions, LevelElem, LevelElemType, Vec2Interface, WallTypes };
