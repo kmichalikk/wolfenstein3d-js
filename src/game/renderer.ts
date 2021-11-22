@@ -1,5 +1,5 @@
 const texture = require('./gfx/texture.png');
-import { Vec2, Directions, Tile, TileType, WallData, CollectibleData } from './utils';
+import { Vec2, Directions, Tile, TileType, WallData, CollectibleData } from '../utils';
 
 interface CollisionInfo {
 	collides: Boolean,

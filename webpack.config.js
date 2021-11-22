@@ -3,8 +3,8 @@ const HTMLWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
 	entry: {
-		game: './src/game.ts',
-		leveleditor: './src/leveleditor.ts'
+		game: './src/game/main.ts',
+		leveleditor: './src/leveleditor/main.ts'
 	},
 	output: {
 		filename: '[name].bundle.js',

@@ -1,4 +1,4 @@
-import { Vec2, WallData, TileType, Tile, CollectibleData } from './utils';
+import { Vec2, WallData, TileType, Tile, CollectibleData } from '../utils';
 
 const canvasSidePx = 512;
 const canvasSideTiles = 16;

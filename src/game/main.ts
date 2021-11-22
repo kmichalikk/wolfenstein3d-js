@@ -1,9 +1,9 @@
 import { Renderer } from './renderer';
-import { Vec2 } from './utils';
+import { Vec2 } from '../utils';
 // @ts-ignore
 import img from './gfx/texture.png';
 // @ts-ignore
-import level from '../levels/1.json';
+import level from '../../levels/1.json';
 
 document.body.style.backgroundColor = "gray";
 
