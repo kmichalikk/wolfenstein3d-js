@@ -51,39 +51,6 @@ class Vec2 {
 	}
 }
 
-interface TextureInfo {
-	name: string;
-	color: string;
-	pos: Vec2;
-	size: Vec2;
-}
-
-let WallData: TextureInfo[] = [
-	{ name: "cobblestone", color: "blue", pos: new Vec2(0, 0), size: new Vec2(256, 256) },
-	{ name: "bricks", color: "gray", pos: new Vec2(256, 0), size: new Vec2(256, 256) },
-	{ name: "wood", color: "brown", pos: new Vec2(512, 0), size: new Vec2(256, 256) },
-]
-
-let CollectibleData: TextureInfo[] = [
-	{ name: "gold", color: "gold", pos: new Vec2(0, 256), size: new Vec2(256, 256) },
-	{ name: "medkit", color: "pink", pos: new Vec2(256, 256), size: new Vec2(256, 256) }
-]
-
-// deprecated
-enum TileType {
-	Empty,
-	Wall,
-	Door,
-	Collectible,
-	Enemy
-}
-
-// deprecated
-interface Tile {
-	type: TileType;
-	detail: number;
-}
-
 enum LevelElemType {
 	Empty,
 	Wall,
@@ -108,6 +75,11 @@ enum WallTypes {
 	Wood
 }
 
+enum CollectibleTypes {
+	Gold,
+	Medkit
+}
+
 enum Directions {
 	North,
 	East,
@@ -115,4 +87,4 @@ enum Directions {
 	West
 }
 
-export { Vec2, TextureInfo, WallData, CollectibleData, TileType, Tile, Directions, LevelElem, LevelElemType, Vec2Interface, WallTypes };
+export { Vec2, Directions, LevelElem, LevelElemType, Vec2Interface, WallTypes, CollectibleTypes };

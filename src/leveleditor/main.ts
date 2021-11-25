@@ -12,8 +12,8 @@ import { LevelElem, LevelElemType } from "../utils";
 
 let Config = {
 	cellSize: 32,
-	levelWidth: 10,
-	levelHeight: 10,
+	levelWidth: 20,
+	levelHeight: 20,
 	origin: {
 		x: 0,
 		y: 0
@@ -92,8 +92,8 @@ canvas.onclick = (e: MouseEvent) => {
 				data = data.filter(val => val.type != LevelElemType.Player);
 			}
 			data.push(newElem);
-			canvasNeedsUpdate = true;
 		}
+		canvasNeedsUpdate = true;
 	}
 }
 

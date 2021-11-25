@@ -1,5 +1,5 @@
 //@ts-ignore
-import { Directions, LevelElem, LevelElemType, Vec2Interface, WallTypes } from '../utils';
+import { CollectibleTypes, Directions, LevelElem, LevelElemType, Vec2Interface, WallTypes } from '../utils';
 //@ts-ignore
 import Texture from './textures/texture.png';
 //@ts-ignore
@@ -253,8 +253,8 @@ export default class Selector {
 		collectible.style.backgroundPosition = `left ${-mappings["collectible"].x}px top 0px`;
 		collectible.onclick = () => {
 			this.currTemplate = {
-				type: LevelElemType.Secret,
-				typeExtended: Directions.South,
+				type: LevelElemType.Collectible,
+				typeExtended: CollectibleTypes.Gold,
 				position: { x: 0, y: 0 },
 				texCoord: mappings["collectible"]
 			}
@@ -270,8 +270,8 @@ export default class Selector {
 		medkit.style.backgroundPosition = `left ${-mappings["medkit"].x}px top 0px`;
 		medkit.onclick = () => {
 			this.currTemplate = {
-				type: LevelElemType.Secret,
-				typeExtended: Directions.South,
+				type: LevelElemType.Collectible,
+				typeExtended: CollectibleTypes.Medkit,
 				position: { x: 0, y: 0 },
 				texCoord: mappings["medkit"]
 			}
@@ -287,8 +287,8 @@ export default class Selector {
 		enemy.style.backgroundPosition = `left ${-mappings["enemy"].x}px top 0px`;
 		enemy.onclick = () => {
 			this.currTemplate = {
-				type: LevelElemType.Secret,
-				typeExtended: Directions.South,
+				type: LevelElemType.Enemy,
+				typeExtended: 0,
 				position: { x: 0, y: 0 },
 				texCoord: mappings["enemy"]
 			}
