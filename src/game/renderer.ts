@@ -7,6 +7,7 @@ interface CollisionInfo {
 	distance: number,
 	collidedWith: LevelElem,
 	collisionPos: Vec2,
+	texOffset: number,
 	facingDirection: Directions,
 	softCollisions: CollisionInfo[],
 	outOfBounds?: boolean
@@ -81,6 +82,9 @@ export default class Renderer {
 				if (d && d.type == LevelElemType.Collectible) {
 					this.collectibles.push(d);
 				}
+				if (d && d.type == LevelElemType.Door) {
+					d.openness = 0;
+				}
 			}
 		}
 		if (!foundPlayer) {
@@ -146,21 +150,41 @@ export default class Renderer {
 					isHit = true;
 					continue;
 				}
-				else if (obj.type === LevelElemType.Door) {
+				else if (obj.type === LevelElemType.Door && obj.openness != 1) {
 					let currDistance =
 						(hitFaceDirection == Directions.East || hitFaceDirection == Directions.West)
 							? unitSumX - unitDistanceX
 							: unitSumY - unitDistanceY;
 					// korekcja "rybiego oka"
 					currDistance *= this.playerDirNormalized.length() / ray.length();
+					// punkt kolizji
 					let collisionPos =
 						(hitFaceDirection == Directions.East || hitFaceDirection == Directions.West)
 							? new Vec2(currentTile.x, currDistance * ray.y + startPos.y)
 							: new Vec2(currDistance * ray.x + startPos.x, currentTile.y);
+					// offset tekstury
+					let texOffset =
+						(hitFaceDirection == Directions.East || hitFaceDirection == Directions.West)
+							? currDistance * ray.y + startPos.y
+							: currDistance * ray.x + startPos.x;
+					texOffset -= Math.floor(texOffset);
+					// poprawienie offsetu tekstury żeby uwzględnić boki sąsiednich ścian
+					// rysowanych w miejscu gdzie normalnie byłaby zwykła ściana
+					if (hitFaceDirection == Directions.North || hitFaceDirection == Directions.South) {
+						texOffset += 0.5 / Math.abs(ray.y) * ray.x;
+					}
+					else {
+						texOffset += 0.5 / Math.abs(ray.x) * ray.y;
+					}
+					if (hitFaceDirection == Directions.North || hitFaceDirection == Directions.East) {
+						texOffset = 1 - texOffset;
+					}
+
 					softCollisions.push({
 						distance: currDistance,
 						collidedWith: this.levelData.data[currentTile.x][currentTile.y]!,
 						collisionPos: collisionPos,
+						texOffset: texOffset,
 						facingDirection: hitFaceDirection,
 						softCollisions: softCollisions
 					})
@@ -186,16 +210,25 @@ export default class Renderer {
 				: unitSumY - unitDistanceY;
 		// korekcja "rybiego oka"
 		finalDistance *= this.playerDirNormalized.length() / ray.length();
+		// punkt kolizji
 		let collisionPos =
 			(hitFaceDirection == Directions.East || hitFaceDirection == Directions.West)
 				? new Vec2(currentTile.x, finalDistance * ray.y + startPos.y)
 				: new Vec2(finalDistance * ray.x + startPos.x, currentTile.y);
-
+		// offset tekstury
+		let texOffset =
+			(hitFaceDirection == Directions.East || hitFaceDirection == Directions.West)
+				? finalDistance * ray.y + startPos.y
+				: finalDistance * ray.x + startPos.x;
+		texOffset -= Math.floor(texOffset);
+		if (hitFaceDirection == Directions.North || hitFaceDirection == Directions.East)
+			texOffset = 1 - texOffset;
 		if (isHit) {
 			return {
 				distance: finalDistance,
 				collidedWith: this.levelData.data[currentTile.x][currentTile.y]!,
 				collisionPos: collisionPos,
+				texOffset: texOffset,
 				facingDirection: hitFaceDirection,
 				softCollisions: softCollisions
 			}
@@ -205,6 +238,7 @@ export default class Renderer {
 				distance: finalDistance,
 				collidedWith: this.levelData.data[currentTile.x][currentTile.y]!,
 				collisionPos: collisionPos,
+				texOffset: texOffset,
 				facingDirection: hitFaceDirection,
 				softCollisions: softCollisions,
 				outOfBounds: true
@@ -270,9 +304,12 @@ export default class Renderer {
 
 	movePlayer = () => {
 		if (this.playerMovement.forward != 0) {
-			let res = this.extendedRaycast(this.playerPos, this.playerMovement.forward > 0 ? this.playerDirNormalized : this.playerDirNormalized.multiplyScalar(-1));
+			// simpleRaycast nie wykrywa kolizji z drzwiami, jeśli są całkiem otwarte
+			// wtedy możemy przez nie przejść
+			let res = this.simpeRaycast(this.playerPos, this.playerMovement.forward > 0 ? this.playerDirNormalized : this.playerDirNormalized.multiplyScalar(-1));
 			// ruch gracza
-			if (res.distance > 0.3) {
+			// kolizje z drzwiami są w softCollisions
+			if (res.softCollisions.length > 0 ? res.softCollisions[0].distance > 0.3 : res.distance > 0.3) {
 				// idziemy do przodu tylko jeśli nie ma kolizji
 				this.playerPos = this.playerPos.addVec(
 					this.playerDirNormalized.multiplyScalar(this.playerMovement.forward));
@@ -298,11 +335,6 @@ export default class Renderer {
 			wallDistanceByScreenLine.push(res.distance);
 
 			let texCoords: Vec2Interface = { x: 0, y: 0 };
-			let texOffset =
-				(res.facingDirection == Directions.East || res.facingDirection == Directions.West)
-					? (Math.ceil(res.collisionPos.y) - res.collisionPos.y) * 256
-					: (Math.ceil(res.collisionPos.x) - res.collisionPos.x) * 256;
-
 			if (res.collidedWith.type == LevelElemType.Wall) {
 				switch (res.collidedWith.typeExtended) {
 					case WallTypes.Wood:
@@ -321,7 +353,7 @@ export default class Renderer {
 			}
 			lineHeight = Math.round((this.canvasSize.y / res.distance));
 			lineStart = (this.canvasSize.y - lineHeight) / 2;
-			this.context.drawImage(this.texture, texCoords.x + texOffset, texCoords.y, 1, 256,
+			this.context.drawImage(this.texture, texCoords.x + res.texOffset * 256, texCoords.y, 1, 256,
 				hline, lineStart, 1, lineHeight);
 		}
 		// narysowanie znajdziek

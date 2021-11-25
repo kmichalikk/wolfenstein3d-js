@@ -66,7 +66,7 @@ interface LevelElem {
 	typeExtended: number;
 	position: Vec2Interface;
 	texCoord: Vec2Interface;
-	facingDirection?: Directions;
+	openness?: number;
 }
 
 enum WallTypes {
