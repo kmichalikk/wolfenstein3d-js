@@ -168,17 +168,6 @@ export default class Renderer {
 							? currDistance * ray.y + startPos.y
 							: currDistance * ray.x + startPos.x;
 					texOffset -= Math.floor(texOffset);
-					// poprawienie offsetu tekstury żeby uwzględnić boki sąsiednich ścian
-					// rysowanych w miejscu gdzie normalnie byłaby zwykła ściana
-					if (hitFaceDirection == Directions.North || hitFaceDirection == Directions.South) {
-						texOffset += 0.5 / Math.abs(ray.y) * ray.x;
-					}
-					else {
-						texOffset += 0.5 / Math.abs(ray.x) * ray.y;
-					}
-					if (hitFaceDirection == Directions.North || hitFaceDirection == Directions.East) {
-						texOffset = 1 - texOffset;
-					}
 
 					softCollisions.push({
 						distance: currDistance,
@@ -246,54 +235,74 @@ export default class Renderer {
 		}
 	}
 
+	_fixDoorTexOffset = (ray: Vec2, coll: CollisionInfo, perpendicularFaceOffset: number = 0.5) => {
+		// poprawienie offsetu tekstury żeby uwzględnić boki sąsiednich ścian
+		// rysowanych w miejscu gdzie normalnie byłaby zwykła ściana
+		if (coll.facingDirection == Directions.North || coll.facingDirection == Directions.South) {
+			coll.texOffset += perpendicularFaceOffset / Math.abs(ray.y) * ray.x;
+		}
+		else {
+			coll.texOffset += perpendicularFaceOffset / Math.abs(ray.x) * ray.y;
+		}
+		if (coll.facingDirection == Directions.North || coll.facingDirection == Directions.East) {
+			coll.texOffset = 1 - coll.texOffset;
+		}
+	}
+
 	extendedRaycast = (startPos: Vec2, ray: Vec2): CollisionInfo => {
 		let take1 = this.simpeRaycast(startPos, ray);
 		// softCollision = drzwi / sekrety itp
 		for (let softCollision of take1.softCollisions) {
+			let perpOffset = 0.5;
 			if (softCollision.facingDirection == Directions.North || softCollision.facingDirection == Directions.South) {
 				if (ray.y > 0) {
-					if (take1.collisionPos.y - softCollision.collisionPos.y < .5) {
+					if (take1.collisionPos.y - softCollision.collisionPos.y < perpOffset) {
 						return take1;
 					}
 					else {
 						let doorCollision = softCollision;
-						doorCollision.collisionPos.y += 0.5;
-						doorCollision.distance += 0.5 / ray.y;
+						doorCollision.collisionPos.y += perpOffset;
+						doorCollision.distance += perpOffset / ray.y;
+						this._fixDoorTexOffset(ray, doorCollision, perpOffset);
 						return doorCollision;
 					}
 				}
 				else {
-					if (softCollision.collisionPos.y - take1.collisionPos.y < -.5) {
+					// collision pos nie działa jak trzeba tylko zawsze jest od góry komórki ;/
+					if (softCollision.collisionPos.y - take1.collisionPos.y < perpOffset - 1) {
 						return take1;
 					}
 					else {
 						let doorCollision = softCollision;
-						doorCollision.collisionPos.y -= 0.5;
-						doorCollision.distance += 0.5 / -ray.y;
+						doorCollision.collisionPos.y -= perpOffset;
+						doorCollision.distance += perpOffset / -ray.y;
+						this._fixDoorTexOffset(ray, doorCollision, perpOffset);
 						return doorCollision;
 					}
 				}
 			}
 			else if (softCollision.facingDirection == Directions.East || softCollision.facingDirection == Directions.West) {
 				if (ray.x > 0) {
-					if (take1.collisionPos.x - softCollision.collisionPos.x < .5) {
+					if (take1.collisionPos.x - softCollision.collisionPos.x < perpOffset) {
 						return take1;
 					}
 					else {
 						let doorCollision = softCollision;
-						doorCollision.collisionPos.x += 0.5;
-						doorCollision.distance += 0.5 / ray.x;
+						doorCollision.collisionPos.x += perpOffset;
+						doorCollision.distance += perpOffset / ray.x;
+						this._fixDoorTexOffset(ray, doorCollision, perpOffset);
 						return doorCollision;
 					}
 				}
 				else {
-					if (softCollision.collisionPos.x - take1.collisionPos.x < -.5) {
+					if (softCollision.collisionPos.x - take1.collisionPos.x < perpOffset - 1) {
 						return take1;
 					}
 					else {
 						let doorCollision = softCollision;
-						doorCollision.collisionPos.x -= 0.5;
-						doorCollision.distance += 0.5 / -ray.x;
+						doorCollision.collisionPos.x -= perpOffset;
+						doorCollision.distance += perpOffset / -ray.x;
+						this._fixDoorTexOffset(ray, doorCollision, perpOffset);
 						return doorCollision;
 					}
 				}
