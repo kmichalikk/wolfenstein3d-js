@@ -63,7 +63,7 @@ enum LevelElemType {
 
 interface LevelElem {
 	type: LevelElemType;
-	typeExtended: number;
+	config: { [k: string]: any };
 	position: Vec2Interface;
 	texCoord: Vec2Interface;
 	openness?: number;

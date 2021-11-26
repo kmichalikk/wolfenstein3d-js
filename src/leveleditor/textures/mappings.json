@@ -1,62 +1,82 @@
 {
-	"doorleft": {
+	"door": {
 		"x": 0,
 		"y": 0
 	},
-	"doorright": {
+	"rockwall": {
 		"x": 64,
 		"y": 0
 	},
-	"doorup": {
+	"rockwall-secret-right": {
 		"x": 128,
 		"y": 0
 	},
-	"doordown": {
+	"rockwall-secret-left": {
 		"x": 192,
 		"y": 0
 	},
-	"secretleft": {
+	"rockwall-secret-top": {
 		"x": 256,
 		"y": 0
 	},
-	"secretright": {
+	"rockwall-secret-bottom": {
 		"x": 320,
 		"y": 0
 	},
-	"secretup": {
+	"woodwall": {
 		"x": 384,
 		"y": 0
 	},
-	"secretdown": {
+	"woodwall-secret-right": {
 		"x": 448,
 		"y": 0
 	},
-	"rockwall": {
+	"woodwall-secret-left": {
 		"x": 512,
 		"y": 0
 	},
-	"woodwall": {
+	"woodwall-secret-top": {
 		"x": 576,
 		"y": 0
 	},
-	"brickwall": {
+	"woodwall-secret-bottom": {
 		"x": 640,
 		"y": 0
 	},
-	"collectible": {
+	"brickwall": {
 		"x": 704,
 		"y": 0
 	},
-	"medkit": {
+	"brickwall-secret-right": {
 		"x": 768,
 		"y": 0
 	},
-	"enemy": {
+	"brickwall-secret-left": {
 		"x": 832,
 		"y": 0
 	},
-	"you": {
+	"brickwall-secret-top": {
 		"x": 896,
+		"y": 0
+	},
+	"brickwall-secret-bottom": {
+		"x": 960,
+		"y": 0
+	},
+	"collectible-gold": {
+		"x": 1024,
+		"y": 0
+	},
+	"collectible-medkit": {
+		"x": 1088,
+		"y": 0
+	},
+	"you": {
+		"x": 1152,
+		"y": 0
+	},
+	"enemy": {
+		"x": 1216,
 		"y": 0
 	}
 }

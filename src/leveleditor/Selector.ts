@@ -10,12 +10,7 @@ import mappings from "./textures/mappings.json";
 export default class Selector {
 	dom: HTMLDivElement;
 	currSelected: HTMLDivElement;
-	currTemplate: (LevelElem | null) = {
-		type: LevelElemType.Wall,
-		typeExtended: WallTypes.Brick,
-		position: { x: 0, y: 0 },
-		texCoord: { x: 640, y: 0 }
-	};
+	currTemplate: (LevelElem | null) = null;
 	constructor() {
 		this.dom = document.createElement("div");
 		this.dom.classList.add("le-selector");
@@ -32,7 +27,7 @@ export default class Selector {
 		}
 		this.dom.append(eraser);
 
-		//###gumka
+		//###gracz
 		let you = document.createElement("div");
 		this.currSelected = you;
 		you.classList.add("le-button");
@@ -41,7 +36,7 @@ export default class Selector {
 		you.onclick = () => {
 			this.currTemplate = {
 				type: LevelElemType.Player,
-				typeExtended: 0,
+				config: {},
 				position: { x: 0, y: 0 },
 				texCoord: mappings["you"]
 			};
@@ -51,8 +46,25 @@ export default class Selector {
 		}
 		this.dom.append(you);
 
-		//###ściany
-		// z kostki
+		//###drzwi
+		let door = document.createElement("div");
+		door.classList.add("le-button");
+		door.style.backgroundImage = `url(${Texture})`;
+		door.style.backgroundPosition = `left ${-mappings["door"].x}px top 0px`;
+		door.onclick = () => {
+			this.currTemplate = {
+				type: LevelElemType.Door,
+				config: {},
+				position: { x: 0, y: 0 },
+				texCoord: mappings["door"]
+			}
+			this.currSelected.classList.remove("le-button-selected");
+			door.classList.add("le-button-selected");
+			this.currSelected = door;
+		}
+		this.dom.append(door);
+
+		//###ściana z kostki
 		let brickwall = document.createElement("div");
 		this.currSelected = brickwall;
 		brickwall.classList.add("le-button", "le-button-selected");
@@ -61,7 +73,7 @@ export default class Selector {
 		brickwall.onclick = () => {
 			this.currTemplate = {
 				type: LevelElemType.Wall,
-				typeExtended: WallTypes.Brick,
+				config: { wallType: WallTypes.Brick },
 				position: { x: 0, y: 0 },
 				texCoord: mappings["brickwall"]
 			}
@@ -69,8 +81,75 @@ export default class Selector {
 			brickwall.classList.add("le-button-selected");
 			this.currSelected = brickwall;
 		}
+		brickwall.click();
 		this.dom.append(brickwall);
-		// drewniania
+		//###ściana z kostki - sekrety
+		let brickwallLeftSecret = document.createElement("div");
+		brickwallLeftSecret.classList.add("le-button");
+		brickwallLeftSecret.style.backgroundImage = `url(${Texture})`;
+		brickwallLeftSecret.style.backgroundPosition = `left ${-mappings["brickwall-secret-left"].x}px top 0px`;
+		brickwallLeftSecret.onclick = () => {
+			this.currTemplate = {
+				type: LevelElemType.Secret,
+				config: { wallType: WallTypes.Brick, direction: Directions.West },
+				position: { x: 0, y: 0 },
+				texCoord: mappings["brickwall-secret-left"]
+			}
+			this.currSelected.classList.remove("le-button-selected");
+			brickwallLeftSecret.classList.add("le-button-selected");
+			this.currSelected = brickwallLeftSecret;
+		}
+		this.dom.append(brickwallLeftSecret);
+		let brickwallRightSecret = document.createElement("div");
+		brickwallRightSecret.classList.add("le-button");
+		brickwallRightSecret.style.backgroundImage = `url(${Texture})`;
+		brickwallRightSecret.style.backgroundPosition = `left ${-mappings["brickwall-secret-right"].x}px top 0px`;
+		brickwallRightSecret.onclick = () => {
+			this.currTemplate = {
+				type: LevelElemType.Secret,
+				config: { wallType: WallTypes.Brick, direction: Directions.East },
+				position: { x: 0, y: 0 },
+				texCoord: mappings["brickwall-secret-right"]
+			}
+			this.currSelected.classList.remove("le-button-selected");
+			brickwallRightSecret.classList.add("le-button-selected");
+			this.currSelected = brickwallRightSecret;
+		}
+		this.dom.append(brickwallRightSecret);
+		let brickwallSecretTop = document.createElement("div");
+		brickwallSecretTop.classList.add("le-button");
+		brickwallSecretTop.style.backgroundImage = `url(${Texture})`;
+		brickwallSecretTop.style.backgroundPosition = `left ${-mappings["brickwall-secret-top"].x}px top 0px`;
+		brickwallSecretTop.onclick = () => {
+			this.currTemplate = {
+				type: LevelElemType.Secret,
+				config: { wallType: WallTypes.Brick, direction: Directions.North },
+				position: { x: 0, y: 0 },
+				texCoord: mappings["brickwall-secret-top"]
+			}
+			this.currSelected.classList.remove("le-button-selected");
+			brickwallSecretTop.classList.add("le-button-selected");
+			this.currSelected = brickwallSecretTop;
+		}
+		this.dom.append(brickwallSecretTop);
+		let brickwallSecretBottom = document.createElement("div");
+		brickwallSecretBottom.classList.add("le-button");
+		brickwallSecretBottom.style.backgroundImage = `url(${Texture})`;
+		brickwallSecretBottom.style.backgroundPosition = `left ${-mappings["brickwall-secret-bottom"].x}px top 0px`;
+		brickwallSecretBottom.onclick = () => {
+			this.currTemplate = {
+				type: LevelElemType.Secret,
+				config: { wallType: WallTypes.Brick, direction: Directions.South },
+				position: { x: 0, y: 0 },
+				texCoord: mappings["brickwall-secret-bottom"]
+			}
+			this.currSelected.classList.remove("le-button-selected");
+			brickwallSecretBottom.classList.add("le-button-selected");
+			this.currSelected = brickwallSecretBottom;
+		}
+		this.dom.append(brickwallSecretBottom);
+
+		//###ściana z desek
 		let woodwall = document.createElement("div");
 		woodwall.classList.add("le-button");
 		woodwall.style.backgroundImage = `url(${Texture})`;
@@ -78,7 +157,7 @@ export default class Selector {
 		woodwall.onclick = () => {
 			this.currTemplate = {
 				type: LevelElemType.Wall,
-				typeExtended: WallTypes.Wood,
+				config: { wallType: WallTypes.Wood },
 				position: { x: 0, y: 0 },
 				texCoord: mappings["woodwall"]
 			}
@@ -87,7 +166,73 @@ export default class Selector {
 			this.currSelected = woodwall;
 		}
 		this.dom.append(woodwall);
-		// kamienna
+		//###ściana z desek - sekrety
+		let woodwallLeftSecret = document.createElement("div");
+		woodwallLeftSecret.classList.add("le-button");
+		woodwallLeftSecret.style.backgroundImage = `url(${Texture})`;
+		woodwallLeftSecret.style.backgroundPosition = `left ${-mappings["woodwall-secret-left"].x}px top 0px`;
+		woodwallLeftSecret.onclick = () => {
+			this.currTemplate = {
+				type: LevelElemType.Secret,
+				config: { wallType: WallTypes.Wood, direction: Directions.West },
+				position: { x: 0, y: 0 },
+				texCoord: mappings["woodwall-secret-left"]
+			}
+			this.currSelected.classList.remove("le-button-selected");
+			woodwallLeftSecret.classList.add("le-button-selected");
+			this.currSelected = woodwallLeftSecret;
+		}
+		this.dom.append(woodwallLeftSecret);
+		let woodwallRightSecret = document.createElement("div");
+		woodwallRightSecret.classList.add("le-button");
+		woodwallRightSecret.style.backgroundImage = `url(${Texture})`;
+		woodwallRightSecret.style.backgroundPosition = `left ${-mappings["woodwall-secret-right"].x}px top 0px`;
+		woodwallRightSecret.onclick = () => {
+			this.currTemplate = {
+				type: LevelElemType.Secret,
+				config: { wallType: WallTypes.Wood, direction: Directions.East },
+				position: { x: 0, y: 0 },
+				texCoord: mappings["woodwall-secret-right"]
+			}
+			this.currSelected.classList.remove("le-button-selected");
+			woodwallRightSecret.classList.add("le-button-selected");
+			this.currSelected = woodwallRightSecret;
+		}
+		this.dom.append(woodwallRightSecret);
+		let woodwallSecretTop = document.createElement("div");
+		woodwallSecretTop.classList.add("le-button");
+		woodwallSecretTop.style.backgroundImage = `url(${Texture})`;
+		woodwallSecretTop.style.backgroundPosition = `left ${-mappings["woodwall-secret-top"].x}px top 0px`;
+		woodwallSecretTop.onclick = () => {
+			this.currTemplate = {
+				type: LevelElemType.Secret,
+				config: { wallType: WallTypes.Wood, direction: Directions.North },
+				position: { x: 0, y: 0 },
+				texCoord: mappings["woodwall-secret-top"]
+			}
+			this.currSelected.classList.remove("le-button-selected");
+			woodwallSecretTop.classList.add("le-button-selected");
+			this.currSelected = woodwallSecretTop;
+		}
+		this.dom.append(woodwallSecretTop);
+		let woodwallSecretBottom = document.createElement("div");
+		woodwallSecretBottom.classList.add("le-button");
+		woodwallSecretBottom.style.backgroundImage = `url(${Texture})`;
+		woodwallSecretBottom.style.backgroundPosition = `left ${-mappings["woodwall-secret-bottom"].x}px top 0px`;
+		woodwallSecretBottom.onclick = () => {
+			this.currTemplate = {
+				type: LevelElemType.Secret,
+				config: { wallType: WallTypes.Wood, direction: Directions.South },
+				position: { x: 0, y: 0 },
+				texCoord: mappings["woodwall-secret-bottom"]
+			}
+			this.currSelected.classList.remove("le-button-selected");
+			woodwallSecretBottom.classList.add("le-button-selected");
+			this.currSelected = woodwallSecretBottom;
+		}
+		this.dom.append(woodwallSecretBottom);
+
+		//###ściana z kamieni
 		let rockwall = document.createElement("div");
 		rockwall.classList.add("le-button");
 		rockwall.style.backgroundImage = `url(${Texture})`;
@@ -95,7 +240,7 @@ export default class Selector {
 		rockwall.onclick = () => {
 			this.currTemplate = {
 				type: LevelElemType.Wall,
-				typeExtended: WallTypes.Rock,
+				config: { wallType: WallTypes.Rock },
 				position: { x: 0, y: 0 },
 				texCoord: mappings["rockwall"]
 			}
@@ -104,159 +249,83 @@ export default class Selector {
 			this.currSelected = rockwall;
 		}
 		this.dom.append(rockwall);
-
-		//###drzwi
-		// lewe
-		let ldoor = document.createElement("div");
-		ldoor.classList.add("le-button");
-		ldoor.style.backgroundImage = `url(${Texture})`;
-		ldoor.style.backgroundPosition = `left ${-mappings["doorleft"].x}px top 0px`;
-		ldoor.onclick = () => {
-			this.currTemplate = {
-				type: LevelElemType.Door,
-				typeExtended: Directions.West,
-				position: { x: 0, y: 0 },
-				texCoord: mappings["doorleft"]
-			}
-			this.currSelected.classList.remove("le-button-selected");
-			ldoor.classList.add("le-button-selected");
-			this.currSelected = ldoor;
-		}
-		this.dom.append(ldoor);
-		// prawe
-		let rdoor = document.createElement("div");
-		rdoor.classList.add("le-button");
-		rdoor.style.backgroundImage = `url(${Texture})`;
-		rdoor.style.backgroundPosition = `left ${-mappings["doorright"].x}px top 0px`;
-		rdoor.onclick = () => {
-			this.currTemplate = {
-				type: LevelElemType.Door,
-				typeExtended: Directions.East,
-				position: { x: 0, y: 0 },
-				texCoord: mappings["doorright"]
-			}
-			this.currSelected.classList.remove("le-button-selected");
-			rdoor.classList.add("le-button-selected");
-			this.currSelected = rdoor;
-		}
-		this.dom.append(rdoor);
-		// góra
-		let udoor = document.createElement("div");
-		udoor.classList.add("le-button");
-		udoor.style.backgroundImage = `url(${Texture})`;
-		udoor.style.backgroundPosition = `left ${-mappings["doorup"].x}px top 0px`;
-		udoor.onclick = () => {
-			this.currTemplate = {
-				type: LevelElemType.Door,
-				typeExtended: Directions.North,
-				position: { x: 0, y: 0 },
-				texCoord: mappings["doorup"]
-			}
-			this.currSelected.classList.remove("le-button-selected");
-			udoor.classList.add("le-button-selected");
-			this.currSelected = udoor;
-		}
-		this.dom.append(udoor);
-		// dół
-		let ddoor = document.createElement("div");
-		ddoor.classList.add("le-button");
-		ddoor.style.backgroundImage = `url(${Texture})`;
-		ddoor.style.backgroundPosition = `left ${-mappings["doordown"].x}px top 0px`;
-		ddoor.onclick = () => {
-			this.currTemplate = {
-				type: LevelElemType.Door,
-				typeExtended: Directions.South,
-				position: { x: 0, y: 0 },
-				texCoord: mappings["doordown"]
-			}
-			this.currSelected.classList.remove("le-button-selected");
-			ddoor.classList.add("le-button-selected");
-			this.currSelected = ddoor;
-		}
-		this.dom.append(ddoor);
-
-		//###sekrety
-		//lewe
-		let lsecret = document.createElement("div");
-		lsecret.classList.add("le-button");
-		lsecret.style.backgroundImage = `url(${Texture})`;
-		lsecret.style.backgroundPosition = `left ${-mappings["secretleft"].x}px top 0px`;
-		lsecret.onclick = () => {
+		//###ściana z kamieni - sekrety
+		let rockwallLeftSecret = document.createElement("div");
+		rockwallLeftSecret.classList.add("le-button");
+		rockwallLeftSecret.style.backgroundImage = `url(${Texture})`;
+		rockwallLeftSecret.style.backgroundPosition = `left ${-mappings["rockwall-secret-left"].x}px top 0px`;
+		rockwallLeftSecret.onclick = () => {
 			this.currTemplate = {
 				type: LevelElemType.Secret,
-				typeExtended: Directions.West,
+				config: { wallType: WallTypes.Rock, direction: Directions.West },
 				position: { x: 0, y: 0 },
-				texCoord: mappings["secretleft"]
+				texCoord: mappings["rockwall-secret-left"]
 			}
 			this.currSelected.classList.remove("le-button-selected");
-			lsecret.classList.add("le-button-selected");
-			this.currSelected = lsecret;
+			rockwallLeftSecret.classList.add("le-button-selected");
+			this.currSelected = rockwallLeftSecret;
 		}
-		this.dom.append(lsecret);
-		//prawe
-		let rsecret = document.createElement("div");
-		rsecret.classList.add("le-button");
-		rsecret.style.backgroundImage = `url(${Texture})`;
-		rsecret.style.backgroundPosition = `left ${-mappings["secretright"].x}px top 0px`;
-		rsecret.onclick = () => {
+		this.dom.append(rockwallLeftSecret);
+		let rockwallRightSecret = document.createElement("div");
+		rockwallRightSecret.classList.add("le-button");
+		rockwallRightSecret.style.backgroundImage = `url(${Texture})`;
+		rockwallRightSecret.style.backgroundPosition = `left ${-mappings["rockwall-secret-right"].x}px top 0px`;
+		rockwallRightSecret.onclick = () => {
 			this.currTemplate = {
 				type: LevelElemType.Secret,
-				typeExtended: Directions.East,
+				config: { wallType: WallTypes.Rock, direction: Directions.East },
 				position: { x: 0, y: 0 },
-				texCoord: mappings["secretright"]
+				texCoord: mappings["rockwall-secret-right"]
 			}
 			this.currSelected.classList.remove("le-button-selected");
-			rsecret.classList.add("le-button-selected");
-			this.currSelected = rsecret;
+			rockwallRightSecret.classList.add("le-button-selected");
+			this.currSelected = rockwallRightSecret;
 		}
-		this.dom.append(rsecret);
-		//góra
-		let usecret = document.createElement("div");
-		usecret.classList.add("le-button");
-		usecret.style.backgroundImage = `url(${Texture})`;
-		usecret.style.backgroundPosition = `left ${-mappings["secretup"].x}px top 0px`;
-		usecret.onclick = () => {
+		this.dom.append(rockwallRightSecret);
+		let rockwallSecretTop = document.createElement("div");
+		rockwallSecretTop.classList.add("le-button");
+		rockwallSecretTop.style.backgroundImage = `url(${Texture})`;
+		rockwallSecretTop.style.backgroundPosition = `left ${-mappings["rockwall-secret-top"].x}px top 0px`;
+		rockwallSecretTop.onclick = () => {
 			this.currTemplate = {
 				type: LevelElemType.Secret,
-				typeExtended: Directions.North,
+				config: { wallType: WallTypes.Rock, direction: Directions.North },
 				position: { x: 0, y: 0 },
-				texCoord: mappings["secretup"]
+				texCoord: mappings["rockwall-secret-top"]
 			}
 			this.currSelected.classList.remove("le-button-selected");
-			usecret.classList.add("le-button-selected");
-			this.currSelected = usecret;
+			rockwallSecretTop.classList.add("le-button-selected");
+			this.currSelected = rockwallSecretTop;
 		}
-		this.dom.append(usecret);
-		//dół
-		let dsecret = document.createElement("div");
-		dsecret.classList.add("le-button");
-		dsecret.style.backgroundImage = `url(${Texture})`;
-		dsecret.style.backgroundPosition = `left ${-mappings["secretdown"].x}px top 0px`;
-		dsecret.onclick = () => {
+		this.dom.append(rockwallSecretTop);
+		let rockwallSecretBottom = document.createElement("div");
+		rockwallSecretBottom.classList.add("le-button");
+		rockwallSecretBottom.style.backgroundImage = `url(${Texture})`;
+		rockwallSecretBottom.style.backgroundPosition = `left ${-mappings["rockwall-secret-bottom"].x}px top 0px`;
+		rockwallSecretBottom.onclick = () => {
 			this.currTemplate = {
 				type: LevelElemType.Secret,
-				typeExtended: Directions.South,
+				config: { wallType: WallTypes.Rock, direction: Directions.South },
 				position: { x: 0, y: 0 },
-				texCoord: mappings["secretdown"]
+				texCoord: mappings["rockwall-secret-bottom"]
 			}
 			this.currSelected.classList.remove("le-button-selected");
-			dsecret.classList.add("le-button-selected");
-			this.currSelected = dsecret;
+			rockwallSecretBottom.classList.add("le-button-selected");
+			this.currSelected = rockwallSecretBottom;
 		}
-		this.dom.append(dsecret);
-
+		this.dom.append(rockwallSecretBottom);
 		//###inne
 		//znajdźka
 		let collectible = document.createElement("div");
 		collectible.classList.add("le-button");
 		collectible.style.backgroundImage = `url(${Texture})`;
-		collectible.style.backgroundPosition = `left ${-mappings["collectible"].x}px top 0px`;
+		collectible.style.backgroundPosition = `left ${-mappings["collectible-gold"].x}px top 0px`;
 		collectible.onclick = () => {
 			this.currTemplate = {
 				type: LevelElemType.Collectible,
-				typeExtended: CollectibleTypes.Gold,
+				config: { collectibleType: CollectibleTypes.Gold },
 				position: { x: 0, y: 0 },
-				texCoord: mappings["collectible"]
+				texCoord: mappings["collectible-gold"]
 			}
 			this.currSelected.classList.remove("le-button-selected");
 			collectible.classList.add("le-button-selected");
@@ -267,13 +336,13 @@ export default class Selector {
 		let medkit = document.createElement("div");
 		medkit.classList.add("le-button");
 		medkit.style.backgroundImage = `url(${Texture})`;
-		medkit.style.backgroundPosition = `left ${-mappings["medkit"].x}px top 0px`;
+		medkit.style.backgroundPosition = `left ${-mappings["collectible-medkit"].x}px top 0px`;
 		medkit.onclick = () => {
 			this.currTemplate = {
 				type: LevelElemType.Collectible,
-				typeExtended: CollectibleTypes.Medkit,
+				config: { collectibleType: CollectibleTypes.Medkit },
 				position: { x: 0, y: 0 },
-				texCoord: mappings["medkit"]
+				texCoord: mappings["collectible-medkit"]
 			}
 			this.currSelected.classList.remove("le-button-selected");
 			medkit.classList.add("le-button-selected");
@@ -288,7 +357,7 @@ export default class Selector {
 		enemy.onclick = () => {
 			this.currTemplate = {
 				type: LevelElemType.Enemy,
-				typeExtended: 0,
+				config: {},
 				position: { x: 0, y: 0 },
 				texCoord: mappings["enemy"]
 			}

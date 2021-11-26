@@ -387,7 +387,7 @@ export default class Renderer {
 		for (let secret of this.secrets) {
 			let subtractVec = this.playerPos.subtractVec(secret.position as Vec2);
 			if (subtractVec.length() <= 1.5) {
-				switch (secret.typeExtended) {
+				switch (secret.config.direction) {
 					case Directions.East:
 						if (subtractVec.x < 0) {
 							this.secrets = this.secrets.filter(val => val != secret);
@@ -498,31 +498,42 @@ export default class Renderer {
 			);
 			let res = this.extendedRaycast(this.playerPos, rayForCurrLine);
 			wallDistanceByScreenLine.push(res.distance);
-
-			let texCoords: Vec2Interface = { x: 0, y: 0 };
-			if (res.collidedWith!.type == LevelElemType.Wall) {
-				switch (res.collidedWith!.typeExtended) {
-					case WallTypes.Wood:
-						texCoords = mappings["woodwall"]
-						break;
-					case WallTypes.Brick:
-						texCoords = mappings["brickwall"]
-						break;
-					case WallTypes.Rock:
-						texCoords = mappings["rockwall"]
-						break;
+			if (res.collidedWith) {
+				let texCoords: Vec2Interface = { x: 0, y: 0 };
+				if (res.collidedWith!.type == LevelElemType.Wall) {
+					switch (res.collidedWith!.config.wallType) {
+						case WallTypes.Wood:
+							texCoords = mappings["woodwall"]
+							break;
+						case WallTypes.Brick:
+							texCoords = mappings["brickwall"]
+							break;
+						case WallTypes.Rock:
+							texCoords = mappings["rockwall"]
+							break;
+					}
 				}
+				else if (res.collidedWith!.type == LevelElemType.Door) {
+					texCoords = mappings["door"];
+				}
+				else if (res.collidedWith!.type == LevelElemType.Secret) {
+					switch (res.collidedWith!.config.wallType) {
+						case WallTypes.Wood:
+							texCoords = mappings["woodwall"]
+							break;
+						case WallTypes.Brick:
+							texCoords = mappings["brickwall"]
+							break;
+						case WallTypes.Rock:
+							texCoords = mappings["rockwall"]
+							break;
+					}
+				}
+				lineHeight = Math.round((this.canvasSize.y / res.distance));
+				lineStart = (this.canvasSize.y - lineHeight) / 2;
+				this.context.drawImage(this.texture, texCoords.x + res.texOffset * 256, texCoords.y, 1, 256,
+					hline, lineStart, 1, lineHeight);
 			}
-			else if (res.collidedWith!.type == LevelElemType.Door) {
-				texCoords = mappings["door"];
-			}
-			else if (res.collidedWith!.type == LevelElemType.Secret) {
-				texCoords = mappings["woodwall"];
-			}
-			lineHeight = Math.round((this.canvasSize.y / res.distance));
-			lineStart = (this.canvasSize.y - lineHeight) / 2;
-			this.context.drawImage(this.texture, texCoords.x + res.texOffset * 256, texCoords.y, 1, 256,
-				hline, lineStart, 1, lineHeight);
 		}
 		// narysowanie znajdziek
 		let collectiblesDistance: { i: number, distance: number }[] = [];
@@ -560,7 +571,7 @@ export default class Renderer {
 			if (drawEndX >= this.canvasSize.x) drawEndX = this.canvasSize.x - 1;
 
 			let p: Vec2Interface = mappings["collectible"];
-			switch (this.collectibles[cbi].typeExtended) {
+			switch (this.collectibles[cbi].config.collectibleType) {
 				case CollectibleTypes.Gold:
 					p = mappings["collectible"];
 					break;
