@@ -364,7 +364,7 @@ export default class Renderer {
 		for (let door of this.doors) {
 			if (this.playerPos.subtractVec(door.position as Vec2).length() < 1.5 && door.openness! == 0) {
 				let interval = setInterval(() => {
-					door.openness! += 0.02;
+					door.openness! += 0.01;
 					if (door.openness! >= 1) {
 						clearInterval(interval);
 						door.openness = 1;
@@ -373,7 +373,7 @@ export default class Renderer {
 			}
 			else if (this.playerPos.subtractVec(door.position as Vec2).length() >= 1.5 && door.openness! == 1) {
 				let interval = setInterval(() => {
-					door.openness! -= 0.02;
+					door.openness! -= 0.01;
 					if (door.openness! <= 0) {
 						clearInterval(interval);
 						door.openness = 0;
