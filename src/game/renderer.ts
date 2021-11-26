@@ -28,6 +28,8 @@ export default class Renderer {
 	levelData: LevelFile; // poziom można wczytać, nie jest zapisany na twardo
 	// sprite'y
 	collectibles: LevelElem[] = [];
+	// drzwi
+	doors: LevelElem[] = [];
 	// kamera
 	playerPos: Vec2; // pozycja gracza
 	playerDirNormalized: Vec2; // znormalizowany kierunek gracza
@@ -84,6 +86,7 @@ export default class Renderer {
 				}
 				if (d && d.type == LevelElemType.Door) {
 					d.openness = 0;
+					this.doors.push(d);
 				}
 			}
 		}
@@ -264,7 +267,10 @@ export default class Renderer {
 						doorCollision.collisionPos.y += perpOffset;
 						doorCollision.distance += perpOffset / ray.y;
 						this._fixDoorTexOffset(ray, doorCollision, perpOffset);
-						return doorCollision;
+						if (doorCollision.texOffset > doorCollision.collidedWith.openness!) {
+							doorCollision.texOffset -= doorCollision.collidedWith.openness!;
+							return doorCollision;
+						}
 					}
 				}
 				else {
@@ -277,7 +283,10 @@ export default class Renderer {
 						doorCollision.collisionPos.y -= perpOffset;
 						doorCollision.distance += perpOffset / -ray.y;
 						this._fixDoorTexOffset(ray, doorCollision, perpOffset);
-						return doorCollision;
+						if (doorCollision.texOffset > doorCollision.collidedWith.openness!) {
+							doorCollision.texOffset -= doorCollision.collidedWith.openness!;
+							return doorCollision;
+						}
 					}
 				}
 			}
@@ -291,7 +300,10 @@ export default class Renderer {
 						doorCollision.collisionPos.x += perpOffset;
 						doorCollision.distance += perpOffset / ray.x;
 						this._fixDoorTexOffset(ray, doorCollision, perpOffset);
-						return doorCollision;
+						if (doorCollision.texOffset > doorCollision.collidedWith.openness!) {
+							doorCollision.texOffset -= doorCollision.collidedWith.openness!;
+							return doorCollision;
+						}
 					}
 				}
 				else {
@@ -303,7 +315,10 @@ export default class Renderer {
 						doorCollision.collisionPos.x -= perpOffset;
 						doorCollision.distance += perpOffset / -ray.x;
 						this._fixDoorTexOffset(ray, doorCollision, perpOffset);
-						return doorCollision;
+						if (doorCollision.texOffset > doorCollision.collidedWith.openness!) {
+							doorCollision.texOffset -= doorCollision.collidedWith.openness!;
+							return doorCollision;
+						}
 					}
 				}
 			}
@@ -326,8 +341,32 @@ export default class Renderer {
 		}
 	}
 
+	autoOpenDoors = () => {
+		for (let door of this.doors) {
+			if (this.playerPos.subtractVec(door.position as Vec2).length() < 1.5 && door.openness! == 0) {
+				let interval = setInterval(() => {
+					door.openness! += 0.02;
+					if (door.openness! >= 1) {
+						clearInterval(interval);
+						door.openness = 1;
+					}
+				}, 20);
+			}
+			else if (this.playerPos.subtractVec(door.position as Vec2).length() >= 1.5 && door.openness! == 1) {
+				let interval = setInterval(() => {
+					door.openness! -= 0.02;
+					if (door.openness! <= 0) {
+						clearInterval(interval);
+						door.openness = 0;
+					}
+				}, 20);
+			}
+		}
+	}
+
 	drawFunc = (delta: number) => {
 		this.movePlayer();
+		this.autoOpenDoors();
 		this.playerDirNormalized.rotate(this.playerMovement.rotate);
 		this.fovVector.rotate(this.playerMovement.rotate);
 		this.context.clearRect(0, 0, this.canvasSize.x, this.canvasSize.y);
