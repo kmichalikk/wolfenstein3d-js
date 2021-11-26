@@ -67,6 +67,7 @@ interface LevelElem {
 	position: Vec2Interface;
 	texCoord: Vec2Interface;
 	openness?: number;
+	perpOffset?: number;
 }
 
 enum WallTypes {
