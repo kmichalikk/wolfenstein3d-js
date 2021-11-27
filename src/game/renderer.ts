@@ -1,16 +1,9 @@
-import { CollectibleTypes, Directions, LevelElem, LevelElemType, Vec2, Vec2Interface, WallTypes } from "../utils";
+import { BaseEnemy, CollectibleTypes, CollisionInfo, Directions, EnemyType, LevelElem, LevelElemType, Vec2, Vec2Interface, WallTypes } from "../utils";
+import Dog from "./AI/Dog";
+import Soldier from "./AI/Soldier";
 
 //@ts-ignore
-import mappings from './gfx/mappings.json';
-
-interface CollisionInfo {
-	distance: number,
-	collidedWith: (LevelElem | null),
-	collisionPos: Vec2,
-	texOffset: number,
-	facingDirection: Directions,
-	softCollisions: CollisionInfo[],
-}
+import mappings from './gfx/misc_mappings.json';
 
 interface LevelFile {
 	data: (LevelElem | null)[][],
@@ -31,6 +24,8 @@ export default class Renderer {
 	doors: LevelElem[] = [];
 	// sekrety
 	secrets: LevelElem[] = [];
+	// przeciwnicy
+	enemies: BaseEnemy[] = [];
 	// kamera
 	playerPos: Vec2; // pozycja gracza
 	playerDirNormalized: Vec2; // znormalizowany kierunek gracza
@@ -75,7 +70,8 @@ export default class Renderer {
 		this.levelData = data;
 		let foundPlayer = false;
 		this.collectibles = [];
-		// szukamy komórki z miejscem startowym gracza
+		// patrzymy co jest w poziomie, zapełniamy właściwe tablice
+		// szukamy gracza
 		for (let col of this.levelData.data) {
 			for (let d of col) {
 				if (d && d.type == LevelElemType.Player) {
@@ -93,6 +89,12 @@ export default class Renderer {
 				else if (d && d.type == LevelElemType.Secret) {
 					d.perpOffset = 0;
 					this.secrets.push(d);
+				}
+				else if (d && d.type == LevelElemType.Enemy) {
+					if (d.config.enemyType == EnemyType.Soldier)
+						this.enemies.push(new Soldier(d.position as Vec2, new Vec2(0, -1)));
+					else if (d.config.enemyType == EnemyType.Dog)
+						this.enemies.push(new Dog(d.position as Vec2, new Vec2(0, -1)));
 				}
 			}
 		}
@@ -585,6 +587,51 @@ export default class Renderer {
 				texX *= texWidthRatio;
 				if (transform.y > 0 && line > 0 && line < this.canvasSize.x && transform.y < wallDistanceByScreenLine[line]) {
 					this.context.drawImage(this.texture, p.x + texX, 256, 1, 256, line, drawStartY, 1, spriteHeight);
+				}
+			}
+		}
+
+		// narysowanie znajdziek
+		let enemiesDistance: { i: number, distance: number }[] = [];
+		for (let cb in this.enemies) {
+			enemiesDistance.push({
+				i: parseInt(cb),
+				distance: (this.playerPos.x - this.collectibles[cb].position.x) ** 2
+					+ (this.playerPos.y - this.collectibles[cb].position.y) ** 2
+			});
+		}
+		// same indeksy, posortowane
+		let enemiesIndexes: number[] = enemiesDistance.sort((a, b) => b.distance - a.distance).map(val => val.i);
+		for (let cbi of enemiesIndexes) {
+			// pozycja znajdźki względem gracza
+			let cbPosRelative: Vec2 = new Vec2(this.enemies[cbi].position.x, this.enemies[cbi].position.y).subtractVec(this.playerPos);
+
+			let invDet: number = 1 / (this.fovVector.x * this.playerDirNormalized.y - this.playerDirNormalized.x * this.fovVector.y);
+
+			let transform: Vec2 = new Vec2(
+				invDet * (this.playerDirNormalized.y * cbPosRelative.x - this.playerDirNormalized.x * cbPosRelative.y),
+				invDet * (-this.fovVector.y * cbPosRelative.x + this.fovVector.x * cbPosRelative.y)
+			);
+
+			let spriteScreenX = Math.floor((this.canvasSize.x / 2) * (1 + transform.x / transform.y));
+
+			let spriteHeight = Math.abs(Math.floor(this.canvasSize.y / transform.y));
+			let drawStartY = Math.floor(-spriteHeight / 2 + this.canvasSize.y / 2);
+			if (drawStartY < 0) drawStartY = 0;
+			let drawEndY = Math.floor(spriteHeight / 2 + this.canvasSize.y / 2);
+			if (drawEndY >= this.canvasSize.y) drawEndY = this.canvasSize.y - 1;
+
+			let spriteWidth = Math.abs(this.canvasSize.y / transform.y);
+			let drawStartX = Math.floor(spriteScreenX - spriteWidth / 2);
+			let drawEndX = Math.floor(spriteScreenX + spriteWidth / 2);
+			if (drawEndX >= this.canvasSize.x) drawEndX = this.canvasSize.x - 1;
+			let p = this.enemies[cbi].texCoords;
+			let texWidthRatio = 64 / spriteWidth;
+			for (let line = drawStartX > 0 ? drawStartX : 0; line < drawEndX; line++) {
+				let texX = line - drawStartX;
+				texX *= texWidthRatio;
+				if (transform.y > 0 && line > 0 && line < this.canvasSize.x && transform.y < wallDistanceByScreenLine[line]) {
+					this.context.drawImage(this.enemies[cbi].texture, p.x + texX, p.y, 1, 64, line, drawStartY, 1, spriteHeight);
 				}
 			}
 		}

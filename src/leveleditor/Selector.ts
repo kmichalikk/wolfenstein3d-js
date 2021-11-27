@@ -1,5 +1,5 @@
 //@ts-ignore
-import { CollectibleTypes, Directions, LevelElem, LevelElemType, Vec2Interface, WallTypes } from '../utils';
+import { CollectibleTypes, Directions, LevelElem, LevelElemType, Vec2Interface, WallTypes, EnemyType } from '../utils';
 //@ts-ignore
 import Texture from './textures/texture.png';
 //@ts-ignore
@@ -349,23 +349,40 @@ export default class Selector {
 			this.currSelected = medkit;
 		}
 		this.dom.append(medkit);
-		//przeciwnik
-		let enemy = document.createElement("div");
-		enemy.classList.add("le-button");
-		enemy.style.backgroundImage = `url(${Texture})`;
-		enemy.style.backgroundPosition = `left ${-mappings["enemy"].x}px top 0px`;
-		enemy.onclick = () => {
+		//żołnież - przeciwnik
+		let enemySoldier = document.createElement("div");
+		enemySoldier.classList.add("le-button");
+		enemySoldier.style.backgroundImage = `url(${Texture})`;
+		enemySoldier.style.backgroundPosition = `left ${-mappings["enemy-soldier"].x}px top 0px`;
+		enemySoldier.onclick = () => {
 			this.currTemplate = {
 				type: LevelElemType.Enemy,
-				config: {},
+				config: { enemyType: EnemyType.Soldier },
 				position: { x: 0, y: 0 },
-				texCoord: mappings["enemy"]
+				texCoord: mappings["enemy-soldier"]
 			}
 			this.currSelected.classList.remove("le-button-selected");
-			enemy.classList.add("le-button-selected");
-			this.currSelected = enemy;
+			enemySoldier.classList.add("le-button-selected");
+			this.currSelected = enemySoldier;
 		}
-		this.dom.append(enemy);
+		this.dom.append(enemySoldier);
+		//pies - przeciwnik
+		let enemyDog = document.createElement("div");
+		enemyDog.classList.add("le-button");
+		enemyDog.style.backgroundImage = `url(${Texture})`;
+		enemyDog.style.backgroundPosition = `left ${-mappings["enemy-dog"].x}px top 0px`;
+		enemyDog.onclick = () => {
+			this.currTemplate = {
+				type: LevelElemType.Enemy,
+				config: { enemyType: EnemyType.Dog },
+				position: { x: 0, y: 0 },
+				texCoord: mappings["enemy-dog"]
+			}
+			this.currSelected.classList.remove("le-button-selected");
+			enemyDog.classList.add("le-button-selected");
+			this.currSelected = enemyDog;
+		}
+		this.dom.append(enemyDog);
 	}
 
 	getNewLevelElem(pos: Vec2Interface) {

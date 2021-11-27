@@ -1,0 +1,26 @@
+import { Vec2, CollisionInfo, BaseEnemy, EnemyType } from "../../utils";
+//@ts-ignore
+import Texture from '../gfx/soldiertex.png';
+
+export default class Soldier extends BaseEnemy {
+	constructor(pos: Vec2, rot: Vec2) {
+		super(EnemyType.Soldier, pos, rot);
+		this.rotation = new Vec2(0, 1);
+		let image = new Image();
+		image.src = Texture;
+		image.onload = () => { this.texture = image };
+	}
+	doSomething = (playerPos: Vec2, playerRotation: Vec2, raycastFunc: (startPos: Vec2, ray: Vec2) => CollisionInfo) => {
+		this.nextDecisionCooldown--;
+		// wykonuje się, kiedy jest czas na nową decyzję
+		if (this.nextDecisionCooldown) {
+			this.rotation.rotate(0.1);
+			this.nextDecisionCooldown = 20;
+		}
+
+		// wykonuje się zawsze
+		let playerAngle = Math.atan2(playerRotation.y, playerRotation.x);
+		let enemyAngle = Math.atan2(this.rotation.y, this.rotation.x);
+		console.log(playerAngle, enemyAngle);
+	}
+}

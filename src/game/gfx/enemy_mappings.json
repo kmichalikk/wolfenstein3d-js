@@ -1,0 +1,34 @@
+{
+	"stand-front": {
+		"x": 0,
+		"y": 0
+	},
+	"stand-front-left": {
+		"x": 65,
+		"y": 0
+	},
+	"stand-left": {
+		"x": 130,
+		"y": 0
+	},
+	"stand-back-left": {
+		"x": 195,
+		"y": 0
+	},
+	"stand-back": {
+		"x": 260,
+		"y": 0
+	},
+	"stand-back-right": {
+		"x": 325,
+		"y": 0
+	},
+	"stand-right": {
+		"x": 380,
+		"y": 0
+	},
+	"stand-front-right": {
+		"x": 445,
+		"y": 0
+	}
+}

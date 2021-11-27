@@ -88,4 +88,36 @@ enum Directions {
 	West
 }
 
-export { Vec2, Directions, LevelElem, LevelElemType, Vec2Interface, WallTypes, CollectibleTypes };
+enum EnemyType {
+	Soldier,
+	Dog
+}
+
+class BaseEnemy {
+	// AIFunc (thisObj: Enemy, playerPos: Vec2, playerRotation: Vec2, ) => number,
+	nextDecisionCooldown: number = 100;
+	position: Vec2;
+	rotation: Vec2;
+	texture: HTMLImageElement = new Image();
+	type: EnemyType;
+	texCoords: Vec2Interface = { x: 0, y: 0 };
+	constructor(type: EnemyType, pos: Vec2, rot: Vec2) {
+		this.type = type;
+		this.position = pos;
+		this.rotation = rot;
+	}
+	doSomething = (playerPos: Vec2, playerRotation: Vec2, raycastFunc: (startPos: Vec2, ray: Vec2) => CollisionInfo) => {
+		console.error("You should override this function");
+	}
+}
+
+interface CollisionInfo {
+	distance: number,
+	collidedWith: (LevelElem | null),
+	collisionPos: Vec2,
+	texOffset: number,
+	facingDirection: Directions,
+	softCollisions: CollisionInfo[],
+}
+
+export { Vec2, Directions, LevelElem, LevelElemType, Vec2Interface, WallTypes, CollectibleTypes, BaseEnemy, EnemyType, CollisionInfo };
