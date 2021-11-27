@@ -49,8 +49,17 @@ class Vec2 {
 		this.x = Math.cos(radians) * oldX - Math.sin(radians) * oldY;
 		this.y = Math.sin(radians) * oldX + Math.cos(radians) * oldY;
 	}
+	angleFromAngleArm(armEnd: Vec2): number {
+		let vec = this.subtractVec(armEnd);
+		let angle = Math.atan2(vec.y, vec.x)
+		if (angle < 0) angle += 2 * Math.PI;
+		return angle;
+	}
 	getRaw(): Vec2Interface {
 		return { x: this.x, y: this.y };
+	}
+	clone(): Vec2 {
+		return new Vec2(this.x, this.y);
 	}
 }
 
@@ -113,9 +122,7 @@ class BaseEnemy {
 		console.error("You should override this function");
 	}
 	adjustTexture = (playerPos: Vec2, frame: string) => {
-		let vec = this.position.subtractVec(playerPos);
-		let angle = Math.atan2(vec.y, vec.x)
-		if (angle < 0) angle += 2 * Math.PI;
+		let angle = this.position.angleFromAngleArm(playerPos);
 		angle -= Math.atan2(this.rotation.y, this.rotation.x) + Math.PI;
 		if (angle < 0) angle += 2 * Math.PI;
 
