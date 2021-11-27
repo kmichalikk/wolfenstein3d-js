@@ -95,7 +95,7 @@ enum EnemyType {
 
 class BaseEnemy {
 	// AIFunc (thisObj: Enemy, playerPos: Vec2, playerRotation: Vec2, ) => number,
-	nextDecisionCooldown: number = 100;
+	nextDecisionCooldown: number = 10;
 	position: Vec2;
 	rotation: Vec2;
 	texture: HTMLImageElement = new Image();

@@ -92,9 +92,9 @@ export default class Renderer {
 				}
 				else if (d && d.type == LevelElemType.Enemy) {
 					if (d.config.enemyType == EnemyType.Soldier)
-						this.enemies.push(new Soldier(d.position as Vec2, new Vec2(0, -1)));
+						this.enemies.push(new Soldier(new Vec2(d.position.x, d.position.y), new Vec2(0, -1)));
 					else if (d.config.enemyType == EnemyType.Dog)
-						this.enemies.push(new Dog(d.position as Vec2, new Vec2(0, -1)));
+						this.enemies.push(new Dog(new Vec2(d.position.x, d.position.y), new Vec2(0, -1)));
 				}
 			}
 		}
@@ -487,6 +487,9 @@ export default class Renderer {
 		this.movePlayer();
 		this.autoOpenDoors();
 		this.uncoverSecrets();
+		for (let enemy of this.enemies)
+			enemy.doSomething(this.playerPos, this.playerDirNormalized, this.simpeRaycast);
+
 		this.playerDirNormalized.rotate(this.playerMovement.rotate);
 		this.fovVector.rotate(this.playerMovement.rotate);
 		this.context.clearRect(0, 0, this.canvasSize.x, this.canvasSize.y);
@@ -591,13 +594,13 @@ export default class Renderer {
 			}
 		}
 
-		// narysowanie znajdziek
+		// narysowanie przeciwników
 		let enemiesDistance: { i: number, distance: number }[] = [];
 		for (let cb in this.enemies) {
 			enemiesDistance.push({
 				i: parseInt(cb),
-				distance: (this.playerPos.x - this.collectibles[cb].position.x) ** 2
-					+ (this.playerPos.y - this.collectibles[cb].position.y) ** 2
+				distance: (this.playerPos.x - this.enemies[cb].position.x) ** 2
+					+ (this.playerPos.y - this.enemies[cb].position.y) ** 2
 			});
 		}
 		// same indeksy, posortowane
