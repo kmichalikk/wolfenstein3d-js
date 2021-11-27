@@ -121,27 +121,32 @@ class BaseEnemy {
 	doSomething = (playerPos: Vec2, playerRotation: Vec2, raycastFunc: (startPos: Vec2, ray: Vec2) => CollisionInfo) => {
 		console.error("You should override this function");
 	}
-	adjustTexture = (playerPos: Vec2, frame: string) => {
-		let angle = this.position.angleFromAngleArm(playerPos);
-		angle -= Math.atan2(this.rotation.y, this.rotation.x) + Math.PI;
-		if (angle < 0) angle += 2 * Math.PI;
+	adjustTexture = (playerPos: Vec2, frame: string, angleSuffix: boolean = true) => {
+		if (angleSuffix) {
+			let angle = this.position.angleFromAngleArm(playerPos);
+			angle -= Math.atan2(this.rotation.y, this.rotation.x) + Math.PI;
+			if (angle < 0) angle += 2 * Math.PI;
 
-		if (angle < Math.PI * 0.125 || angle >= Math.PI * 1.875)
-			this.texCoords = enemyMappings[frame + "-front"];
-		else if (angle < Math.PI * 0.375 && angle >= Math.PI * 0.125)
-			this.texCoords = enemyMappings[frame + "-front-right"];
-		else if (angle < Math.PI * 0.625 && angle >= Math.PI * 0.375)
-			this.texCoords = enemyMappings[frame + "-right"];
-		else if (angle < Math.PI * 0.875 && angle >= Math.PI * 0.625)
-			this.texCoords = enemyMappings[frame + "-back-right"];
-		else if (angle < Math.PI * 1.125 && angle >= Math.PI * 0.875)
-			this.texCoords = enemyMappings[frame + "-back"];
-		else if (angle < Math.PI * 1.375 && angle >= Math.PI * 1.125)
-			this.texCoords = enemyMappings[frame + "-back-left"];
-		else if (angle < Math.PI * 1.625 && angle >= Math.PI * 1.375)
-			this.texCoords = enemyMappings[frame + "-left"];
-		else if (angle < Math.PI * 1.875 && angle >= Math.PI * 1.625)
-			this.texCoords = enemyMappings[frame + "-front-left"];
+			if (angle < Math.PI * 0.125 || angle >= Math.PI * 1.875)
+				this.texCoords = enemyMappings[frame + "-front"];
+			else if (angle < Math.PI * 0.375 && angle >= Math.PI * 0.125)
+				this.texCoords = enemyMappings[frame + "-front-right"];
+			else if (angle < Math.PI * 0.625 && angle >= Math.PI * 0.375)
+				this.texCoords = enemyMappings[frame + "-right"];
+			else if (angle < Math.PI * 0.875 && angle >= Math.PI * 0.625)
+				this.texCoords = enemyMappings[frame + "-back-right"];
+			else if (angle < Math.PI * 1.125 && angle >= Math.PI * 0.875)
+				this.texCoords = enemyMappings[frame + "-back"];
+			else if (angle < Math.PI * 1.375 && angle >= Math.PI * 1.125)
+				this.texCoords = enemyMappings[frame + "-back-left"];
+			else if (angle < Math.PI * 1.625 && angle >= Math.PI * 1.375)
+				this.texCoords = enemyMappings[frame + "-left"];
+			else if (angle < Math.PI * 1.875 && angle >= Math.PI * 1.625)
+				this.texCoords = enemyMappings[frame + "-front-left"];
+		}
+		else {
+			this.texCoords = enemyMappings[frame];
+		}
 	}
 }
 

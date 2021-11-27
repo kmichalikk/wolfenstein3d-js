@@ -4,8 +4,12 @@ import Texture from '../gfx/dogtex.png';
 
 export default class Dog extends BaseEnemy {
 	speed: number;
+	frame: string = "run0";
+	animClock: number = 0;
 	agression: number;
+	tryingToBite: boolean = false;
 	distanceToPlayer: number;
+
 	constructor(pos: Vec2, rot: Vec2) {
 		super(EnemyType.Dog, pos, rot);
 		this.rotation = new Vec2(0, -1);
@@ -16,36 +20,48 @@ export default class Dog extends BaseEnemy {
 		image.src = Texture;
 		image.onload = () => { this.texture = image; }
 	}
+
 	doSomething = (playerPos: Vec2, playerRotation: Vec2, raycastFunc: (startPos: Vec2, ray: Vec2) => CollisionInfo) => {
+		this.animClock++;
 		this.nextDecisionCooldown--;
 		// wykonuje się, kiedy jest czas na nową decyzję
 		if (this.nextDecisionCooldown <= 0) {
 			console.log('am thinking');
 			this.nextDecisionCooldown = Math.round(Math.random() * 10) + 20;
 
-			if (this.agression > 0.7) {
-				let angle = this.position.angleFromAngleArm(playerPos);
-				angle -= Math.atan2(this.rotation.y, this.rotation.x) + Math.PI;
-				if (angle < 0) angle += 2 * Math.PI;
-				angle += Math.random() - 0.5;
-				this.rotation.rotate(angle);
-				this.nextDecisionCooldown -= 10;
-				console.log('me angry!');
+			if (!this.tryingToBite) {
+				if (this.agression > 0.7) {
+					let angle = this.position.angleFromAngleArm(playerPos);
+					angle -= Math.atan2(this.rotation.y, this.rotation.x) + Math.PI;
+					if (angle < 0) angle += 2 * Math.PI;
+					angle += Math.random() - 0.5;
+					this.rotation.rotate(angle);
+					this.nextDecisionCooldown -= 10;
+					console.log('me angry!');
+				}
+				else {
+					if (Math.random() > 0.8)
+						this.rotation.rotate(Math.random() * Math.PI * 2);
+					else
+						this.rotation.rotate(Math.random() * Math.PI * 1.5 - 0.75);
+					console.log('me ok with you');
+				}
+
+				if (this.distanceToPlayer < 1 && this.agression > 0.4) {
+					this.speed = 0.03;
+					console.log('me biting you!');
+					this.tryingToBite = true;
+					this.speed = 0;
+					this.frame = "attack0";
+					this.nextDecisionCooldown = 24;
+				}
 			}
 			else {
-				if (Math.random() > 0.8)
-					this.rotation.rotate(Math.random() * Math.PI * 2);
-				else
-					this.rotation.rotate(Math.random() * Math.PI * 1.5 - 0.75);
-				console.log('me ok with you');
-			}
-
-			if (this.distanceToPlayer < 0.5 && this.agression > 0.4) {
-				this.speed = 0.03;
+				this.tryingToBite = false;
+				this.frame = "run0";
+				this.speed = 0.04;
 				this.rotation = playerRotation.clone();
 				this.rotation.rotate(Math.random() - 0.5);
-				console.log('me biting you!');
-				this.nextDecisionCooldown = 60;
 			}
 		}
 
@@ -54,14 +70,13 @@ export default class Dog extends BaseEnemy {
 			// jeśli gracz jest daleko, powoli uspokaja się
 			this.agression -= 0.01;
 		}
-		else if (this.distanceToPlayer <= 4 && this.distanceToPlayer > 1.5 && this.agression < 1) {
+		else if (this.distanceToPlayer < 5 && this.distanceToPlayer > 2 && this.agression < 1) {
 			// jeśli gracz jest blisko, robi się bardziej agresywny
 			this.agression += 0.02;
 		}
-		if (this.distanceToPlayer <= 0.5 && this.agression > 0.5)
+		if (this.distanceToPlayer < 1)
 			this.nextDecisionCooldown = 0;
 
-		console.log(this.agression);
 		// ruch
 		let collisionTest = raycastFunc(this.position, this.rotation);
 		if (collisionTest.softCollisions.length > 0 ? collisionTest.softCollisions[0].distance > 0.3 : collisionTest.distance > 0.3) {
@@ -69,7 +84,20 @@ export default class Dog extends BaseEnemy {
 		}
 		else if (this.nextDecisionCooldown > 5)
 			this.nextDecisionCooldown = 5;
+
+		// animacje
+		if (this.animClock % 8 == 0) {
+			switch (this.frame) {
+				case "run0": this.frame = "run1"; break;
+				case "run1": this.frame = "run2"; break;
+				case "run2": this.frame = "run3"; break;
+				case "run3": this.frame = "run0"; break;
+				case "attack0": this.frame = "attack1"; break;
+				case "attack1": this.frame = "attack2"; break;
+			}
+		}
+
 		// ustawienie odpowiedniej tekstury w zależności od kierunku patrzenia gracza
-		this.adjustTexture(playerPos, "stand");
+		this.adjustTexture(playerPos, this.frame, !this.tryingToBite);
 	}
 }

@@ -1,34 +1,158 @@
 {
-	"stand-front": {
+	"run0-front": {
 		"x": 0,
 		"y": 0
 	},
-	"stand-front-left": {
+	"run0-front-left": {
 		"x": 65,
 		"y": 0
 	},
-	"stand-left": {
+	"run0-left": {
 		"x": 130,
 		"y": 0
 	},
-	"stand-back-left": {
+	"run0-back-left": {
 		"x": 195,
 		"y": 0
 	},
-	"stand-back": {
+	"run0-back": {
 		"x": 260,
 		"y": 0
 	},
-	"stand-back-right": {
+	"run0-back-right": {
 		"x": 325,
 		"y": 0
 	},
-	"stand-right": {
+	"run0-right": {
 		"x": 380,
 		"y": 0
 	},
-	"stand-front-right": {
+	"run0-front-right": {
 		"x": 445,
-		"y": 0
+		"y": 65
+	},
+	"run1-front": {
+		"x": 0,
+		"y": 65
+	},
+	"run1-front-left": {
+		"x": 65,
+		"y": 65
+	},
+	"run1-left": {
+		"x": 130,
+		"y": 65
+	},
+	"run1-back-left": {
+		"x": 195,
+		"y": 65
+	},
+	"run1-back": {
+		"x": 260,
+		"y": 65
+	},
+	"run1-back-right": {
+		"x": 325,
+		"y": 65
+	},
+	"run1-right": {
+		"x": 380,
+		"y": 65
+	},
+	"run1-front-right": {
+		"x": 445,
+		"y": 65
+	},
+	"run2-front": {
+		"x": 0,
+		"y": 130
+	},
+	"run2-front-left": {
+		"x": 65,
+		"y": 130
+	},
+	"run2-left": {
+		"x": 130,
+		"y": 130
+	},
+	"run2-back-left": {
+		"x": 195,
+		"y": 130
+	},
+	"run2-back": {
+		"x": 260,
+		"y": 130
+	},
+	"run2-back-right": {
+		"x": 325,
+		"y": 130
+	},
+	"run2-right": {
+		"x": 380,
+		"y": 130
+	},
+	"run2-front-right": {
+		"x": 445,
+		"y": 130
+	},
+	"run3-front": {
+		"x": 0,
+		"y": 195
+	},
+	"run3-front-left": {
+		"x": 65,
+		"y": 195
+	},
+	"run3-left": {
+		"x": 130,
+		"y": 195
+	},
+	"run3-back-left": {
+		"x": 195,
+		"y": 195
+	},
+	"run3-back": {
+		"x": 260,
+		"y": 195
+	},
+	"run3-back-right": {
+		"x": 325,
+		"y": 195
+	},
+	"run3-right": {
+		"x": 380,
+		"y": 195
+	},
+	"run3-front-right": {
+		"x": 445,
+		"y": 195
+	},
+	"death0": {
+		"x": 0,
+		"y": 260
+	},
+	"death1": {
+		"x": 65,
+		"y": 260
+	},
+	"death2": {
+		"x": 130,
+		"y": 260
+	},
+	"death3": {
+		"x": 195,
+		"y": 260
+	},
+	"attack0": {
+		"x": 0,
+		"y": 325
+	},
+	"attack1": {
+		"x": 65,
+		"y": 325
+	},
+	"attack2": {
+		"x": 130,
+		"y": 325
 	}
 }

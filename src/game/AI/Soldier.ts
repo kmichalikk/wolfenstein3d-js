@@ -17,6 +17,6 @@ export default class Soldier extends BaseEnemy {
 			this.rotation.rotate(0.1);
 			this.nextDecisionCooldown = 4;
 		}
-		this.adjustTexture(playerPos, "stand");
+		this.adjustTexture(playerPos, "run0");
 	}
 }
