@@ -78,7 +78,6 @@ export default class Dog extends BaseEnemy {
 		else if (this.agression > 0) {
 			this.agression -= 1 / this.distanceToPlayer / 10;
 		}
-		console.log('agr', this.agression);
 		if (this.distanceToPlayer < 1 && !this.tryingToBite)
 			this.nextDecisionCooldown = 0;
 

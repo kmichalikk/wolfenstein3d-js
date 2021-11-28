@@ -33,10 +33,11 @@ export default class Renderer {
 	// ruch gracza
 	playerMovement = {
 		forward: 0,
-		rotate: 0
+		rotate: 0,
+		interaction: false
 	}
 	playerLinearVelocity = 0.05
-	playerAngularVelocity = 0.02
+	playerAngularVelocity = 0.03
 
 	logger: HTMLDivElement
 
@@ -362,9 +363,11 @@ export default class Renderer {
 		}
 	}
 
-	autoOpenDoors = () => {
+	openDoors = () => {
 		for (let door of this.doors) {
-			if (this.playerPos.subtractVec(door.position as Vec2).length() < 1.5 && door.openness! == 0) {
+			if (this.playerPos.subtractVec(new Vec2(door.position.x + 0.5, door.position.y + 0.5)).length() < 1
+				&& door.openness! == 0
+				&& this.playerMovement.interaction) {
 				let interval = setInterval(() => {
 					door.openness! += 0.01;
 					if (door.openness! >= 1) {
@@ -373,22 +376,13 @@ export default class Renderer {
 					}
 				}, 20);
 			}
-			else if (this.playerPos.subtractVec(door.position as Vec2).length() >= 1.5 && door.openness! == 1) {
-				let interval = setInterval(() => {
-					door.openness! -= 0.01;
-					if (door.openness! <= 0) {
-						clearInterval(interval);
-						door.openness = 0;
-					}
-				}, 20);
-			}
 		}
 	}
 
 	uncoverSecrets = () => {
 		for (let secret of this.secrets) {
-			let subtractVec = this.playerPos.subtractVec(secret.position as Vec2);
-			if (subtractVec.length() <= 1.5) {
+			let subtractVec = this.playerPos.subtractVec(new Vec2(secret.position.x + 0.5, secret.position.y + 0.5));
+			if (subtractVec.length() <= 1 && this.playerMovement.interaction) {
 				switch (secret.config.direction) {
 					case Directions.East:
 						if (subtractVec.x < 0) {
@@ -485,7 +479,7 @@ export default class Renderer {
 
 	drawFunc = (delta: number) => {
 		this.movePlayer();
-		this.autoOpenDoors();
+		this.openDoors();
 		this.uncoverSecrets();
 		for (let enemy of this.enemies)
 			enemy.doSomething(this.playerPos, this.playerDirNormalized, this.simpeRaycast);
@@ -652,6 +646,7 @@ export default class Renderer {
 			case 's': this.playerMovement.forward = -this.playerLinearVelocity; break;
 			case 'a': this.playerMovement.rotate = -this.playerAngularVelocity; break;
 			case 'd': this.playerMovement.rotate = this.playerAngularVelocity; break;
+			case ' ': this.playerMovement.interaction = true; break;
 		}
 	}
 
@@ -661,6 +656,7 @@ export default class Renderer {
 			case 's': this.playerMovement.forward = 0; break;
 			case 'a': this.playerMovement.rotate = 0; break;
 			case 'd': this.playerMovement.rotate = 0; break;
+			case ' ': this.playerMovement.interaction = false; break;
 		}
 	}
 }
