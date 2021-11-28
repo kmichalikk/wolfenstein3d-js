@@ -1,9 +1,12 @@
-import { BaseEnemy, CollectibleTypes, CollisionInfo, Directions, EnemyType, LevelElem, LevelElemType, Vec2, Vec2Interface, WallTypes } from "../utils";
+//@ts-ignore
+import Texture from './gfx/texture.png';
+import { BaseEnemy, CollectibleTypes, CollisionInfo, Directions, EnemyType, LevelElem, LevelElemType, Vec2, Vec2Interface, WallTypes, Weapons } from "../utils";
 import Dog from "./AI/Dog";
 import Soldier from "./AI/Soldier";
 
 //@ts-ignore
 import mappings from './gfx/misc_mappings.json';
+import HandUI from './HandUI';
 
 interface LevelFile {
 	data: (LevelElem | null)[][],
@@ -39,9 +42,12 @@ export default class Renderer {
 	playerLinearVelocity = 0.05
 	playerAngularVelocity = 0.03
 
+	// ręka
+	handUI: HandUI;
+
 	logger: HTMLDivElement
 
-	constructor(canvasSize: Vec2, texture: HTMLImageElement) {
+	constructor(canvasSize: Vec2) {
 		//html
 		this.canvas = document.createElement("canvas");
 		this.canvas.classList.add("game-canvas");
@@ -51,7 +57,8 @@ export default class Renderer {
 		this.context = this.canvas.getContext("2d")!;
 		this.context.imageSmoothingEnabled = false;
 		//assety	
-		this.texture = texture;
+		this.texture = new Image();
+		this.texture.src = Texture;
 		this.levelData = { width: 0, height: 0, data: [] };
 		//kamera
 		this.playerPos = new Vec2();
@@ -65,6 +72,9 @@ export default class Renderer {
 
 		this.logger = document.createElement("div")
 		document.body.append(this.logger);
+
+		this.handUI = new HandUI(this.context, this.canvasSize as Vec2);
+		this.handUI.setWeapon(Weapons.Pistol);
 	}
 
 	loadLevel = (data: LevelFile) => {
@@ -632,6 +642,7 @@ export default class Renderer {
 				}
 			}
 		}
+		this.handUI.draw();
 
 		requestAnimationFrame(this.drawFunc);
 	}
@@ -642,20 +653,20 @@ export default class Renderer {
 
 	handleKeyboardDown = (event: KeyboardEvent) => {
 		switch (event.key) {
-			case 'w': this.playerMovement.forward = this.playerLinearVelocity; break;
-			case 's': this.playerMovement.forward = -this.playerLinearVelocity; break;
-			case 'a': this.playerMovement.rotate = -this.playerAngularVelocity; break;
-			case 'd': this.playerMovement.rotate = this.playerAngularVelocity; break;
+			case 'ArrowUp': this.playerMovement.forward = this.playerLinearVelocity; break;
+			case 'ArrowDown': this.playerMovement.forward = -this.playerLinearVelocity; break;
+			case 'ArrowLeft': this.playerMovement.rotate = -this.playerAngularVelocity; break;
+			case 'ArrowRight': this.playerMovement.rotate = this.playerAngularVelocity; break;
 			case ' ': this.playerMovement.interaction = true; break;
 		}
 	}
 
 	handleKeyboardUp = (event: KeyboardEvent) => {
 		switch (event.key) {
-			case 'w': this.playerMovement.forward = 0; break;
-			case 's': this.playerMovement.forward = 0; break;
-			case 'a': this.playerMovement.rotate = 0; break;
-			case 'd': this.playerMovement.rotate = 0; break;
+			case 'ArrowUp': this.playerMovement.forward = 0; break;
+			case 'ArrowDown': this.playerMovement.forward = 0; break;
+			case 'ArrowLeft': this.playerMovement.rotate = 0; break;
+			case 'ArrowRight': this.playerMovement.rotate = 0; break;
 			case ' ': this.playerMovement.interaction = false; break;
 		}
 	}

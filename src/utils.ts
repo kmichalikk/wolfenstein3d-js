@@ -166,4 +166,11 @@ interface CollisionInfo {
 	softCollisions: CollisionInfo[],
 }
 
-export { Vec2, Directions, LevelElem, LevelElemType, Vec2Interface, WallTypes, CollectibleTypes, BaseEnemy, EnemyType, CollisionInfo };
+enum Weapons {
+	Knife,
+	Pistol,
+	Rifle,
+	Machinegun
+}
+
+export { Vec2, Directions, LevelElem, LevelElemType, Vec2Interface, WallTypes, CollectibleTypes, BaseEnemy, EnemyType, CollisionInfo, Weapons };
