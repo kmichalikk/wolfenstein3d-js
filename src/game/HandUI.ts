@@ -13,6 +13,9 @@ export default class HandUI {
 	frameName: string = "";
 	frameNum: number = 0;
 	mapping: Vec2Interface = { x: 0, y: 0 };
+	attackCount: number = 0;
+	stopping: boolean = false;
+	currentCallback = () => { };
 	constructor(context: CanvasRenderingContext2D, canvasSize: Vec2Interface) {
 		this.context = context;
 		this.canvasSize = canvasSize;
@@ -33,9 +36,41 @@ export default class HandUI {
 		this.mapping = mappings[this.frameName + this.frameNum];
 	}
 
+	shootOnce = (callback: () => void) => {
+		this.currentCallback = callback;
+		this.attackCount = 1;
+	}
+
+	shootStart = (callback: () => void) => {
+		this.currentCallback = callback;
+		// będzie w nieskończoność
+		this.attackCount = -1;
+	}
+
+	shootStop = () => {
+		this.stopping = true;
+	}
+
 	draw = () => {
 		this.clock++;
-		if (this.clock % 8 == 0) {
+		if (this.clock % 4 == 0) {
+			if (this.attackCount != 0) {
+				if (this.frameNum < 4) {
+					this.frameNum++;
+				}
+				else {
+					this.frameNum = 1;
+					if (this.stopping)
+						this.attackCount = 0;
+					else
+						this.attackCount--;
+					this.currentCallback();
+				}
+			}
+			else {
+				this.frameNum = 0;
+			}
+			this.mapping = mappings[this.frameName + this.frameNum];
 		}
 		this.context.drawImage(this.texture,
 			this.mapping.x, this.mapping.y, 64, 64,

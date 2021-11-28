@@ -37,12 +37,17 @@ export default class Renderer {
 	playerMovement = {
 		forward: 0,
 		rotate: 0,
-		interaction: false
+		interaction: false,
+		shooting: false
 	}
 	playerLinearVelocity = 0.05
 	playerAngularVelocity = 0.03
 
-	// ręka
+	// strzelanie
+	currentWeapon: Weapons = Weapons.Pistol;
+	weaponCooldown: number = 0;
+	waitForReady: boolean = false;
+	waitForTriggerRelease: boolean = false;
 	handUI: HandUI;
 
 	logger: HTMLDivElement
@@ -487,10 +492,34 @@ export default class Renderer {
 		}
 	}
 
+	handleShooting = () => {
+		if (this.playerMovement.shooting && !this.waitForReady && !this.waitForTriggerRelease) {
+			if (this.currentWeapon == Weapons.Knife || this.currentWeapon == Weapons.Pistol) {
+				this.waitForReady = true;
+				this.handUI.shootOnce(() => {
+					this.waitForReady = false;
+				});
+				this.waitForTriggerRelease = true;
+			}
+			else {
+				this.waitForReady = true;
+				this.handUI.shootStart(() => {
+					this.waitForReady = false;
+				});
+			}
+		}
+		else if (!this.playerMovement.shooting) {
+			this.waitForTriggerRelease = false;
+			if (this.currentWeapon == Weapons.Rifle || this.currentWeapon == Weapons.Machinegun)
+				this.handUI.shootStop();
+		}
+	}
+
 	drawFunc = (delta: number) => {
 		this.movePlayer();
 		this.openDoors();
 		this.uncoverSecrets();
+		this.handleShooting();
 		for (let enemy of this.enemies)
 			enemy.doSomething(this.playerPos, this.playerDirNormalized, this.simpeRaycast);
 
@@ -658,6 +687,9 @@ export default class Renderer {
 			case 'ArrowLeft': this.playerMovement.rotate = -this.playerAngularVelocity; break;
 			case 'ArrowRight': this.playerMovement.rotate = this.playerAngularVelocity; break;
 			case ' ': this.playerMovement.interaction = true; break;
+			case 'Control':
+			case 'Meta':
+				this.playerMovement.shooting = true; break;
 		}
 	}
 
@@ -668,6 +700,25 @@ export default class Renderer {
 			case 'ArrowLeft': this.playerMovement.rotate = 0; break;
 			case 'ArrowRight': this.playerMovement.rotate = 0; break;
 			case ' ': this.playerMovement.interaction = false; break;
+			case 'Control':
+			case 'Meta':
+				this.playerMovement.shooting = false; break;
+			case '1':
+				this.currentWeapon = Weapons.Knife;
+				this.handUI.setWeapon(Weapons.Knife);
+				break;
+			case '2':
+				this.currentWeapon = Weapons.Pistol;
+				this.handUI.setWeapon(Weapons.Pistol);
+				break;
+			case '3':
+				this.currentWeapon = Weapons.Rifle;
+				this.handUI.setWeapon(Weapons.Rifle);
+				break;
+			case '4':
+				this.currentWeapon = Weapons.Machinegun;
+				this.handUI.setWeapon(Weapons.Machinegun);
+				break;
 		}
 	}
 }
