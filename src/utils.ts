@@ -43,17 +43,24 @@ class Vec2 {
 	floor(): Vec2 {
 		return new Vec2(Math.floor(this.x), Math.floor(this.y));
 	}
-	rotate(radians: number): void {
+	rotate(radians: number): Vec2 {
 		let oldX: number = this.x;
 		let oldY: number = this.y;
 		this.x = Math.cos(radians) * oldX - Math.sin(radians) * oldY;
 		this.y = Math.sin(radians) * oldX + Math.cos(radians) * oldY;
+		return this;
 	}
 	angleFromAngleArm(armEnd: Vec2): number {
 		let vec = this.subtractVec(armEnd);
 		let angle = Math.atan2(vec.y, vec.x)
 		if (angle < 0) angle += 2 * Math.PI;
 		return angle;
+	}
+	normalize(): Vec2 {
+		let len = this.length();
+		this.x /= len;
+		this.y /= len;
+		return this;
 	}
 	getRaw(): Vec2Interface {
 		return { x: this.x, y: this.y };

@@ -66,15 +66,20 @@ export default class Dog extends BaseEnemy {
 		}
 
 		this.distanceToPlayer = this.position.subtractVec(playerPos).length();
-		if (this.distanceToPlayer > 4 && this.agression > 0) {
-			// jeśli gracz jest daleko, powoli uspokaja się
-			this.agression -= 0.01;
-		}
-		else if (this.distanceToPlayer < 5 && this.distanceToPlayer > 2 && this.agression < 1) {
+		let rayToPlayer = raycastFunc(this.position, playerPos.subtractVec(this.position).normalize());
+		let playerInSight = rayToPlayer.softCollisions.length > 0
+			? this.distanceToPlayer < rayToPlayer.softCollisions[0].distance
+			: this.distanceToPlayer < rayToPlayer.distance;
+
+		if (playerInSight && this.agression < 1) {
 			// jeśli gracz jest blisko, robi się bardziej agresywny
-			this.agression += 0.02;
+			this.agression += 1 / this.distanceToPlayer / 10;
 		}
-		if (this.distanceToPlayer < 1)
+		else if (this.agression > 0) {
+			this.agression -= 1 / this.distanceToPlayer / 10;
+		}
+		console.log('agr', this.agression);
+		if (this.distanceToPlayer < 1 && !this.tryingToBite)
 			this.nextDecisionCooldown = 0;
 
 		// ruch
