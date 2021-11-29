@@ -75,7 +75,18 @@ canvas.onwheel = (e: WheelEvent) => {
 }
 
 // dodawanie elementów
-canvas.onclick = (e: MouseEvent) => {
+let startDrawHandler = (e: MouseEvent) => {
+	if (e.button == 0) {
+		drawHandler(e);
+		canvas.addEventListener("mousemove", drawHandler);
+	}
+}
+
+let endDrawHandler = () => {
+	canvas.removeEventListener("mousemove", drawHandler);
+}
+
+let drawHandler = (e: MouseEvent) => {
 	let actualX = Math.round((e.clientX - canvas.offsetLeft) * 640 / canvas.offsetWidth) - Config.origin.x;
 	let actualY = Math.round((e.clientY - canvas.offsetTop) * 480 / canvas.offsetHeight) - Config.origin.y;
 	if (actualX >= 0 && actualX < Config.levelWidth * Config.cellSize
@@ -96,6 +107,9 @@ canvas.onclick = (e: MouseEvent) => {
 		canvasNeedsUpdate = true;
 	}
 }
+
+canvas.addEventListener("mousedown", startDrawHandler);
+canvas.addEventListener("mouseup", endDrawHandler);
 
 // rysowanie
 let texture = new Image();
