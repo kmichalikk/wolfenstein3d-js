@@ -524,12 +524,18 @@ export default class Renderer {
 			let diff = Math.abs(shootAngle - enemyAngle);
 			let diff2 = Math.abs(2 * Math.PI - diff);
 			diff = diff < diff2 ? diff : diff2;
-			let allowedAngle = Math.atan2(0.15, enemy.position.subtractVec(this.playerPos).length())
+			let allowedAngle = Math.atan2(0.18, enemy.position.subtractVec(this.playerPos).length())
 			let distanceToEnemy = this.playerPos.subtractVec(enemy.position).length();
-			if (diff < allowedAngle && (this.currentWeapon != Weapons.Knife || distanceToEnemy < 1.2))
-				console.log('hit');
-			else
-				console.log('missed');
+			if (diff < allowedAngle && (this.currentWeapon != Weapons.Knife || distanceToEnemy < 1.2)) {
+				let damage: number = 0;
+				switch (this.currentWeapon) {
+					case Weapons.Knife: damage = 40; break;
+					case Weapons.Pistol: damage = 60; break;
+					case Weapons.Rifle: damage = 80; break;
+					case Weapons.Machinegun: damage = 120; break;
+				}
+				enemy.HP -= damage;
+			}
 		}
 	}
 
@@ -538,8 +544,8 @@ export default class Renderer {
 		this.openDoors();
 		this.uncoverSecrets();
 		this.handleShooting();
-		// for (let enemy of this.enemies)
-		// 	enemy.doSomething(this.playerPos, this.playerDirNormalized, this.simpeRaycast);
+		for (let enemy of this.enemies)
+			enemy.doSomething(this.playerPos, this.playerDirNormalized, this.simpeRaycast);
 
 		this.playerDirNormalized.rotate(this.playerMovement.rotate);
 		this.fovVector.rotate(this.playerMovement.rotate);

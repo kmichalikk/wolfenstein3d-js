@@ -53,7 +53,11 @@ export default class HandUI {
 
 	draw = () => {
 		this.clock++;
-		if (this.clock % 4 == 0) {
+		let speed = 4;
+		if (this.frameName == "machinegun") {
+			speed = 3;
+		}
+		if (this.clock % speed == 0) {
 			if (this.attackCount != 0) {
 				if (this.frameNum < 4) {
 					this.frameNum++;
