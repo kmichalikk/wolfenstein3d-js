@@ -497,6 +497,7 @@ export default class Renderer {
 			if (this.currentWeapon == Weapons.Knife || this.currentWeapon == Weapons.Pistol) {
 				this.waitForReady = true;
 				this.handUI.shootOnce(() => {
+					this.checkHit();
 					this.waitForReady = false;
 				});
 				this.waitForTriggerRelease = true;
@@ -504,6 +505,7 @@ export default class Renderer {
 			else {
 				this.waitForReady = true;
 				this.handUI.shootStart(() => {
+					this.checkHit();
 					this.waitForReady = false;
 				});
 			}
@@ -515,13 +517,29 @@ export default class Renderer {
 		}
 	}
 
+	checkHit = () => {
+		for (let enemy of this.enemies) {
+			let shootAngle = this.playerDirNormalized.angle();
+			let enemyAngle = enemy.position.angleFromAngleArm(this.playerPos);
+			let diff = Math.abs(shootAngle - enemyAngle);
+			let diff2 = Math.abs(2 * Math.PI - diff);
+			diff = diff < diff2 ? diff : diff2;
+			let allowedAngle = Math.atan2(0.15, enemy.position.subtractVec(this.playerPos).length())
+			let distanceToEnemy = this.playerPos.subtractVec(enemy.position).length();
+			if (diff < allowedAngle && (this.currentWeapon != Weapons.Knife || distanceToEnemy < 1.2))
+				console.log('hit');
+			else
+				console.log('missed');
+		}
+	}
+
 	drawFunc = (delta: number) => {
 		this.movePlayer();
 		this.openDoors();
 		this.uncoverSecrets();
 		this.handleShooting();
-		for (let enemy of this.enemies)
-			enemy.doSomething(this.playerPos, this.playerDirNormalized, this.simpeRaycast);
+		// for (let enemy of this.enemies)
+		// 	enemy.doSomething(this.playerPos, this.playerDirNormalized, this.simpeRaycast);
 
 		this.playerDirNormalized.rotate(this.playerMovement.rotate);
 		this.fovVector.rotate(this.playerMovement.rotate);

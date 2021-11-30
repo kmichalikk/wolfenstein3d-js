@@ -50,7 +50,7 @@ export default class Soldier extends BaseEnemy {
 				this.nextDecisionCooldown = Math.round(Math.random() * 10) + 20;
 				if (this.playerInSight) {
 					if (Math.random() > 0.2) {
-						console.log('Ich sehe dich!');
+						//console.log('Ich sehe dich!');
 
 						let distanceToPlayer = playerPos.subtractVec(this.position).length();
 						if (distanceToPlayer >= 5) {
@@ -78,7 +78,7 @@ export default class Soldier extends BaseEnemy {
 						}
 						else {
 							// teraz to już albo on albo gracz - stoi i strzela
-							console.log("*shooting*");
+							////console.log("*shooting*");
 							this.speed = 0;
 							this.nextDecisionCooldown = 24;
 							this.frame = "attack0";
@@ -88,7 +88,7 @@ export default class Soldier extends BaseEnemy {
 						this.rotation.rotate(Math.random() * 0.5 - 0.25);
 					}
 					else {
-						console.log('*shooting*');
+						//console.log('*shooting*');
 						this.speed = 0;
 						this.nextDecisionCooldown = 24;
 						this.frame = "attack0";
@@ -97,7 +97,7 @@ export default class Soldier extends BaseEnemy {
 				}
 				else if (this.playerLastPos) {
 					// już nie widzimy gracza - ale wiemy gdzie był wcześniej
-					console.log("Wo bist du?");
+					//console.log("Wo bist du?");
 					let vecToLastPlayerPos = this.playerLastPos.subtractVec(this.position);
 					if (vecToLastPlayerPos.length() > 1) {
 						this.rotation = vecToLastPlayerPos.normalize();

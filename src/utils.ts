@@ -50,6 +50,11 @@ class Vec2 {
 		this.y = Math.sin(radians) * oldX + Math.cos(radians) * oldY;
 		return this;
 	}
+	angle(): number {
+		let angle = Math.atan2(this.y, this.x)
+		if (angle < 0) angle += 2 * Math.PI;
+		return angle;
+	}
 	angleFromAngleArm(armEnd: Vec2): number {
 		let vec = this.subtractVec(armEnd);
 		let angle = Math.atan2(vec.y, vec.x)
@@ -120,6 +125,7 @@ class BaseEnemy {
 	texture: HTMLImageElement = new Image();
 	type: EnemyType;
 	texCoords: Vec2Interface = { x: 0, y: 0 };
+	HP: number = 100;
 	constructor(type: EnemyType, pos: Vec2, rot: Vec2) {
 		this.type = type;
 		this.position = pos;

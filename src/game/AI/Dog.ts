@@ -26,7 +26,7 @@ export default class Dog extends BaseEnemy {
 		this.nextDecisionCooldown--;
 		// wykonuje się, kiedy jest czas na nową decyzję
 		if (this.nextDecisionCooldown <= 0) {
-			console.log('am thinking');
+			//console.log('am thinking');
 			this.nextDecisionCooldown = Math.round(Math.random() * 10) + 20;
 
 			if (!this.tryingToBite) {
@@ -37,19 +37,19 @@ export default class Dog extends BaseEnemy {
 					angle += Math.random() - 0.5;
 					this.rotation.rotate(angle);
 					this.nextDecisionCooldown -= 10;
-					console.log('me angry!');
+					//console.log('me angry!');
 				}
 				else {
 					if (Math.random() > 0.8)
 						this.rotation.rotate(Math.random() * Math.PI * 2);
 					else
 						this.rotation.rotate(Math.random() * Math.PI * 1.5 - 0.75);
-					console.log('me ok with you');
+					//console.log('me ok with you');
 				}
 
 				if (this.distanceToPlayer < 1 && this.agression > 0.4) {
 					this.speed = 0.03;
-					console.log('me biting you!');
+					//console.log('me biting you!');
 					this.tryingToBite = true;
 					this.speed = 0;
 					this.frame = "attack0";
