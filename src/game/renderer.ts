@@ -3,9 +3,6 @@ import Texture from '../gfx/texture.png';
 import { BaseEnemy, CollectibleTypes, CollisionInfo, Directions, EnemyType, LevelElem, LevelElemType, Vec2, Vec2Interface, WallTypes, Weapons } from "../utils";
 import Dog from "./AI/Dog";
 import Soldier from "./AI/Soldier";
-
-//@ts-ignore
-import mappings from '../gfx/env_mappings.json';
 import HandUI from './HandUI';
 
 interface LevelFile {

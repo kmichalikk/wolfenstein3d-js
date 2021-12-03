@@ -3,7 +3,7 @@ import './style.css';
 import Texture from '../gfx/texture.png';
 //@ts-ignore
 import Mappings from '../gfx/env_mappings.json';
-import { CollectibleTypes, Directions, LevelElem, LevelElemType, Vec2, Vec2Interface, WallTypes } from '../utils';
+import { CollectibleTypes, Directions, EnemyType, LevelElem, LevelElemType, Vec2, Vec2Interface, WallTypes } from '../utils';
 
 export default class Selectors {
 	objects: LevelElem[] = [];
@@ -183,6 +183,28 @@ export default class Selectors {
 					this.objects.push({
 						type: LevelElemType.Player,
 						config: {},
+						position: { x: 0, y: 0 },
+						texCoords: [o as Vec2Interface],
+						collidable: false
+					});
+					break;
+				case 'soldier':
+					this.objects.push({
+						type: LevelElemType.Enemy,
+						config: {
+							enemyType: EnemyType.Soldier
+						},
+						position: { x: 0, y: 0 },
+						texCoords: [o as Vec2Interface],
+						collidable: false
+					});
+					break;
+				case 'dog':
+					this.objects.push({
+						type: LevelElemType.Enemy,
+						config: {
+							enemyType: EnemyType.Dog
+						},
 						position: { x: 0, y: 0 },
 						texCoords: [o as Vec2Interface],
 						collidable: false
