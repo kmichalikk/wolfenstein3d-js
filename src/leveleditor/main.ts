@@ -1,14 +1,14 @@
 //@ts-ignore
-import Texture from "./textures/texture.png";
+import Texture from '../gfx/texture.png';
 //@ts-ignore
-import Bg from "./textures/hip-square.png";
+import Bg from "../gfx/hip-square.png";
 //@ts-ignore
 import "./style.css";
-//@ts-ignore
-import "./textures/mappings.json";
-
-import Selector from "./Selector";
 import { LevelElem, LevelElemType } from "../utils";
+import Selectors from './Selector';
+
+document.body.style.backgroundImage = `url(${Bg})`;
+document.body.style.backgroundRepeat = "repeat";
 
 let Config = {
 	cellSize: 32,
@@ -25,19 +25,28 @@ Config.origin.y = 480 / 2 - Config.levelHeight / 2 * Config.cellSize;
 
 // niepuste komórki na planszy
 let data: LevelElem[] = [];
+let currElem: (LevelElem | null) = null;
+let selector: Selectors = new Selectors();
+addEventListener('selectorChanged', ((e: CustomEvent) => {
+	currElem = e.detail;
+}) as EventListener)
+document.body.append(selector.DOM)
 
-// wygenerowanie buttonów
-let selector = new Selector();
-document.body.append(selector.dom);
-document.body.style.backgroundImage = `url(${Bg})`;
-document.body.style.backgroundRepeat = "repeat";
+let container = document.createElement("div");
+container.classList.add("le-container");
+document.body.append(container as HTMLDivElement);
 
-// canvas
+// ustawienia dodatkowe
+let settings = document.createElement("div");
+settings.classList.add("le-settings");
+container.append(settings);
+
+//canvas
 let canvas: HTMLCanvasElement = document.createElement("canvas");
-canvas.classList.add('le-canvas');
+canvas.classList.add("le-canvas");
 canvas.width = 640;
 canvas.height = 480;
-document.body.append(canvas);
+container?.append(canvas);
 // będziemy przerysowywać tylko wtedy, kiedy dane się zmienią
 let canvasNeedsUpdate = true;
 
@@ -94,15 +103,16 @@ let drawHandler = (e: MouseEvent) => {
 		let x = Math.floor(actualX / Config.cellSize);
 		let y = Math.floor(actualY / Config.cellSize);
 		data = data.filter(val => (val.position.x != x || val.position.y != y));
-		let newElem: (LevelElem | null) = selector.getNewLevelElem({
-			x: Math.floor(actualX / Config.cellSize),
-			y: Math.floor(actualY / Config.cellSize)
-		})
-		if (newElem) {
-			if (newElem.type == LevelElemType.Player) {
-				data = data.filter(val => val.type != LevelElemType.Player);
+		if (!e.shiftKey) {
+			let newElem: LevelElem = JSON.parse(JSON.stringify(currElem));
+			if (newElem) {
+				newElem.position.x = Math.floor(actualX / Config.cellSize);
+				newElem.position.y = Math.floor(actualY / Config.cellSize);
+				if (newElem.type == LevelElemType.Player) {
+					data = data.filter(val => val.type != LevelElemType.Player);
+				}
+				data.push(newElem);
 			}
-			data.push(newElem);
 		}
 		canvasNeedsUpdate = true;
 	}
@@ -132,8 +142,8 @@ texture.onload = () => {
 		for (let d of data) {
 			context.drawImage(
 				texture,
-				d.texCoord.x,
-				d.texCoord.y,
+				d.texCoords[0].x,
+				d.texCoords[0].y,
 				64,
 				64,
 				d.position.x * Config.cellSize + Config.origin.x,
@@ -149,6 +159,7 @@ texture.onload = () => {
 
 // eksportowanie
 let exportButton = document.createElement("button");
+exportButton.classList.add("le-export-button");
 exportButton.innerText = "Eksportuj";
 document.body.append(exportButton);
 

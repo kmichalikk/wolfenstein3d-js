@@ -1,6 +1,6 @@
 import { Vec2, CollisionInfo, BaseEnemy, EnemyType } from "../../utils";
 //@ts-ignore
-import Texture from '../gfx/dogtex.png';
+import Texture from '../../gfx/dogtex.png';
 
 export default class Dog extends BaseEnemy {
 	speed: number;

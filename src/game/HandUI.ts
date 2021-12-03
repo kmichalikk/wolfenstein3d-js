@@ -1,7 +1,7 @@
 //@ts-ignore
-import WeaponTexture from './gfx/weapontex.png';
+import WeaponTexture from '../gfx/weapontex.png';
 //@ts-ignore
-import mappings from './gfx/weapon_mappings.json';
+import mappings from '../gfx/weapon_mappings.json';
 import { Vec2, Vec2Interface, Weapons } from "../utils";
 
 export default class HandUI {

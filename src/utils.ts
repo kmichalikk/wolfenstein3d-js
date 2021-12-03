@@ -1,5 +1,5 @@
 //@ts-ignore
-import enemyMappings from './game/gfx/enemy_mappings.json';
+import enemyMappings from './gfx/enemy_mappings.json';
 
 interface Vec2Interface {
 	x: number;
@@ -76,22 +76,28 @@ class Vec2 {
 }
 
 enum LevelElemType {
-	Empty,
 	Wall,
 	Secret,
 	Door,
 	Collectible,
 	Enemy,
-	Player
+	Player,
+	ObjectNonCollidable,
+	ObjectCollidable
 }
 
 interface LevelElem {
 	type: LevelElemType;
-	config: { [k: string]: any };
+	config: {
+		perpOffset?: number,
+		openness?: number,
+		typeExtended?: number,
+		enemyType?: number,
+		direction?: number,
+	};
 	position: Vec2Interface;
-	texCoord: Vec2Interface;
-	openness?: number;
-	perpOffset?: number;
+	texCoords: Vec2Interface[];
+	collidable: boolean;
 }
 
 enum WallTypes {
@@ -102,14 +108,20 @@ enum WallTypes {
 
 enum CollectibleTypes {
 	Gold,
-	Medkit
+	HealthSm,
+	HealthLg,
+	Rifle,
+	Machinegun,
+	Ammo,
+	Other,
+	Life
 }
 
 enum Directions {
-	North,
-	East,
-	South,
-	West
+	North = 0,
+	East = 1,
+	South = 2,
+	West = 3
 }
 
 enum EnemyType {

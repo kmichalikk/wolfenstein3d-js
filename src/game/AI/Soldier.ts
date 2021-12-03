@@ -1,6 +1,6 @@
 import { Vec2, CollisionInfo, BaseEnemy, EnemyType } from "../../utils";
 //@ts-ignore
-import Texture from '../gfx/soldiertex.png';
+import Texture from '../../gfx/soldiertex.png';
 
 export default class Soldier extends BaseEnemy {
 	animClock: number = 0;
