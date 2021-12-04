@@ -19,13 +19,15 @@ export default class Renderer {
 	texture: HTMLImageElement;
 	levelData: LevelFile; // poziom można wczytać, nie jest zapisany na twardo
 	// sprite'y
-	collectibles: LevelElem[] = [];
+	sprites: LevelElem[] = [];
 	// drzwi
 	doors: LevelElem[] = [];
 	// sekrety
 	secrets: LevelElem[] = [];
 	// przeciwnicy
 	enemies: BaseEnemy[] = [];
+	// znajdźki
+	collectibles: LevelElem[] = [];
 	// kamera
 	playerPos: Vec2; // pozycja gracza
 	playerDirNormalized: Vec2; // znormalizowany kierunek gracza
@@ -91,6 +93,9 @@ export default class Renderer {
 					this.playerPos = new Vec2(d.position.x, d.position.y);
 					foundPlayer = true;
 				}
+				if (d && (d.type == LevelElemType.ObjectCollidable || d.type == LevelElemType.ObjectNonCollidable || d.type == LevelElemType.Collectible)) {
+					this.sprites.push(d);
+				}
 				if (d && d.type == LevelElemType.Collectible) {
 					this.collectibles.push(d);
 				}
@@ -119,7 +124,7 @@ export default class Renderer {
 		}
 	}
 
-	simpeRaycast = (startPos: Vec2, ray: Vec2): CollisionInfo => {
+	simpleRaycast = (startPos: Vec2, ray: Vec2): CollisionInfo => {
 		let currentTile: Vec2 = startPos.floor();
 		// ray to wektor jednostkowy - zawsze o długości 1
 		// czyli x i y ray'a wyrażają proporcję ruchu OX / OY
@@ -174,7 +179,8 @@ export default class Renderer {
 					isHit = true;
 					continue;
 				}
-				else if ((obj.type === LevelElemType.Door && obj.config.openness != 1) || (obj.type === LevelElemType.Secret)) {
+				else if ((obj.type === LevelElemType.Door && obj.config.openness != 1) || (obj.type === LevelElemType.Secret)
+					|| (obj.type === LevelElemType.ObjectCollidable)) {
 					let currDistance =
 						(hitFaceDirection == Directions.East || hitFaceDirection == Directions.West)
 							? unitSumX - unitDistanceX
@@ -182,10 +188,21 @@ export default class Renderer {
 					// korekcja "rybiego oka"
 					currDistance *= this.playerDirNormalized.length() / ray.length();
 					// punkt kolizji
-					let collisionPos =
-						(hitFaceDirection == Directions.East || hitFaceDirection == Directions.West)
-							? new Vec2(currentTile.x, currDistance * ray.y + startPos.y)
-							: new Vec2(currDistance * ray.x + startPos.x, currentTile.y);
+					let collisionPos = new Vec2;
+					switch (hitFaceDirection) {
+						case Directions.East:
+							collisionPos = new Vec2(currentTile.x + 0.01, currDistance * ray.y + startPos.y);
+							break;
+						case Directions.West:
+							collisionPos = new Vec2(currentTile.x + 0.99, currDistance * ray.y + startPos.y);
+							break;
+						case Directions.North:
+							collisionPos = new Vec2(currDistance * ray.x + startPos.x, currentTile.y + 0.99);
+							break;
+						case Directions.South:
+							collisionPos = new Vec2(currDistance * ray.x + startPos.x, currentTile.y + 0.01);
+							break;
+					}
 					// offset tekstury
 					let texOffset =
 						(hitFaceDirection == Directions.East || hitFaceDirection == Directions.West)
@@ -273,85 +290,87 @@ export default class Renderer {
 	}
 
 	extendedRaycast = (startPos: Vec2, ray: Vec2): CollisionInfo => {
-		let take1 = this.simpeRaycast(startPos, ray);
+		let take1 = this.simpleRaycast(startPos, ray);
 		// softCollision = drzwi / sekrety itp
 		for (let softCollision of take1.softCollisions) {
-			if (softCollision.facingDirection == Directions.North || softCollision.facingDirection == Directions.South) {
-				if (ray.y > 0) {
-					// if (take1.collisionPos.y - softCollision.collisionPos.y < softCollision.collidedWith!.perpOffset!) {
-					if (Math.floor(Math.abs(softCollision.collisionPos.x)) != Math.floor(softCollision.collidedWith?.config.perpOffset! / ray.y * ray.x + softCollision.collisionPos.x)) {
-						return take1;
+			if (softCollision.collidedWith!.type == LevelElemType.Door || softCollision.collidedWith!.type == LevelElemType.Secret) {
+				if (softCollision.facingDirection == Directions.North || softCollision.facingDirection == Directions.South) {
+					if (ray.y > 0) {
+						// if (take1.collisionPos.y - softCollision.collisionPos.y < softCollision.collidedWith!.perpOffset!) {
+						if (Math.floor(Math.abs(softCollision.collisionPos.x)) != Math.floor(softCollision.collidedWith?.config.perpOffset! / ray.y * ray.x + softCollision.collisionPos.x)) {
+							continue;
+						}
+						else {
+							let collision = softCollision;
+							collision.collisionPos.y += softCollision.collidedWith!.config.perpOffset!;
+							collision.distance += softCollision.collidedWith!.config.perpOffset! / ray.y;
+							this._fixTexOffset(ray, collision, softCollision.collidedWith!.config.perpOffset!);
+							if (collision.collidedWith!.type == LevelElemType.Door && collision.texOffset > collision.collidedWith!.config.openness!) {
+								collision.texOffset -= collision.collidedWith!.config.openness!;
+								return collision;
+							}
+							else if (collision.collidedWith!.type == LevelElemType.Secret) {
+								return collision;
+							}
+						}
 					}
 					else {
-						let collision = softCollision;
-						collision.collisionPos.y += softCollision.collidedWith!.config.perpOffset!;
-						collision.distance += softCollision.collidedWith!.config.perpOffset! / ray.y;
-						this._fixTexOffset(ray, collision, softCollision.collidedWith!.config.perpOffset!);
-						if (collision.collidedWith!.type == LevelElemType.Door && collision.texOffset > collision.collidedWith!.config.openness!) {
-							collision.texOffset -= collision.collidedWith!.config.openness!;
-							return collision;
+						// if (softCollision.collisionPos.y - take1.collisionPos.y < softCollision.collidedWith!.perpOffset! - 1) {
+						if (Math.floor(Math.abs(softCollision.collisionPos.x)) != Math.floor(softCollision.collidedWith?.config.perpOffset! / ray.y * -ray.x + softCollision.collisionPos.x)) {
+							continue;
 						}
-						else if (collision.collidedWith!.type == LevelElemType.Secret) {
-							return collision;
+						else {
+							let collision = softCollision;
+							collision.collisionPos.y -= softCollision.collidedWith!.config.perpOffset!;
+							collision.distance += softCollision.collidedWith!.config.perpOffset! / -ray.y;
+							this._fixTexOffset(ray, collision, softCollision.collidedWith!.config.perpOffset!);
+							if (collision.collidedWith!.type == LevelElemType.Door && collision.texOffset > collision.collidedWith!.config.openness!) {
+								collision.texOffset -= collision.collidedWith!.config.openness!;
+								return collision;
+							}
+							else if (collision.collidedWith!.type == LevelElemType.Secret) {
+								return collision;
+							}
 						}
 					}
 				}
-				else {
-					// if (softCollision.collisionPos.y - take1.collisionPos.y < softCollision.collidedWith!.perpOffset! - 1) {
-					if (Math.floor(Math.abs(softCollision.collisionPos.x)) != Math.floor(softCollision.collidedWith?.config.perpOffset! / ray.y * -ray.x + softCollision.collisionPos.x)) {
-						return take1;
+				else if (softCollision.facingDirection == Directions.East || softCollision.facingDirection == Directions.West) {
+					if (ray.x > 0) {
+						// if (take1.collisionPos.x - softCollision.collisionPos.x < softCollision.collidedWith!.perpOffset!) {
+						if (Math.floor(Math.abs(softCollision.collisionPos.y)) != Math.floor(softCollision.collidedWith?.config.perpOffset! / ray.x * ray.y + softCollision.collisionPos.y)) {
+							continue;
+						}
+						else {
+							let collision = softCollision;
+							collision.collisionPos.x += softCollision.collidedWith!.config.perpOffset!;
+							collision.distance += softCollision.collidedWith!.config.perpOffset! / ray.x;
+							this._fixTexOffset(ray, collision, softCollision.collidedWith!.config.perpOffset!);
+							if (collision.collidedWith!.type == LevelElemType.Door && collision.texOffset > collision.collidedWith!.config.openness!) {
+								collision.texOffset -= collision.collidedWith!.config.openness!;
+								return collision;
+							}
+							else if (collision.collidedWith!.type == LevelElemType.Secret) {
+								return collision;
+							}
+						}
 					}
 					else {
-						let collision = softCollision;
-						collision.collisionPos.y -= softCollision.collidedWith!.config.perpOffset!;
-						collision.distance += softCollision.collidedWith!.config.perpOffset! / -ray.y;
-						this._fixTexOffset(ray, collision, softCollision.collidedWith!.config.perpOffset!);
-						if (collision.collidedWith!.type == LevelElemType.Door && collision.texOffset > collision.collidedWith!.config.openness!) {
-							collision.texOffset -= collision.collidedWith!.config.openness!;
-							return collision;
+						// if (softCollision.collisionPos.x - take1.collisionPos.x < softCollision.collidedWith!.perpOffset! - 1) {
+						if (Math.floor(Math.abs(softCollision.collisionPos.y)) != Math.floor(softCollision.collidedWith?.config.perpOffset! / ray.x * -ray.y + softCollision.collisionPos.y)) {
+							continue;
 						}
-						else if (collision.collidedWith!.type == LevelElemType.Secret) {
-							return collision;
-						}
-					}
-				}
-			}
-			else if (softCollision.facingDirection == Directions.East || softCollision.facingDirection == Directions.West) {
-				if (ray.x > 0) {
-					// if (take1.collisionPos.x - softCollision.collisionPos.x < softCollision.collidedWith!.perpOffset!) {
-					if (Math.floor(Math.abs(softCollision.collisionPos.y)) != Math.floor(softCollision.collidedWith?.config.perpOffset! / ray.x * ray.y + softCollision.collisionPos.y)) {
-						return take1;
-					}
-					else {
-						let collision = softCollision;
-						collision.collisionPos.x += softCollision.collidedWith!.config.perpOffset!;
-						collision.distance += softCollision.collidedWith!.config.perpOffset! / ray.x;
-						this._fixTexOffset(ray, collision, softCollision.collidedWith!.config.perpOffset!);
-						if (collision.collidedWith!.type == LevelElemType.Door && collision.texOffset > collision.collidedWith!.config.openness!) {
-							collision.texOffset -= collision.collidedWith!.config.openness!;
-							return collision;
-						}
-						else if (collision.collidedWith!.type == LevelElemType.Secret) {
-							return collision;
-						}
-					}
-				}
-				else {
-					// if (softCollision.collisionPos.x - take1.collisionPos.x < softCollision.collidedWith!.perpOffset! - 1) {
-					if (Math.floor(Math.abs(softCollision.collisionPos.y)) != Math.floor(softCollision.collidedWith?.config.perpOffset! / ray.x * -ray.y + softCollision.collisionPos.y)) {
-						return take1;
-					}
-					else {
-						let collision = softCollision;
-						collision.collisionPos.x -= softCollision.collidedWith!.config.perpOffset!;
-						collision.distance += softCollision.collidedWith!.config.perpOffset! / -ray.x;
-						this._fixTexOffset(ray, collision, softCollision.collidedWith!.config.perpOffset!);
-						if (collision.texOffset > collision.collidedWith!.config.openness!) {
-							collision.texOffset -= collision.collidedWith!.config.openness!;
-							return collision;
-						}
-						else if (collision.collidedWith!.type == LevelElemType.Secret) {
-							return collision;
+						else {
+							let collision = softCollision;
+							collision.collisionPos.x -= softCollision.collidedWith!.config.perpOffset!;
+							collision.distance += softCollision.collidedWith!.config.perpOffset! / -ray.x;
+							this._fixTexOffset(ray, collision, softCollision.collidedWith!.config.perpOffset!);
+							if (collision.texOffset > collision.collidedWith!.config.openness!) {
+								collision.texOffset -= collision.collidedWith!.config.openness!;
+								return collision;
+							}
+							else if (collision.collidedWith!.type == LevelElemType.Secret) {
+								return collision;
+							}
 						}
 					}
 				}
@@ -364,7 +383,7 @@ export default class Renderer {
 		if (this.playerMovement.forward != 0) {
 			// simpleRaycast nie wykrywa kolizji z drzwiami, jeśli są całkiem otwarte
 			// wtedy możemy przez nie przejść
-			let res = this.simpeRaycast(this.playerPos, this.playerMovement.forward > 0 ? this.playerDirNormalized : this.playerDirNormalized.multiplyScalar(-1));
+			let res = this.simpleRaycast(this.playerPos, this.playerMovement.forward > 0 ? this.playerDirNormalized : this.playerDirNormalized.multiplyScalar(-1));
 			// ruch gracza
 			// kolizje z drzwiami są w softCollisions
 			if (res.softCollisions.length > 0 ? res.softCollisions[0].distance > 0.3 : res.distance > 0.3) {
@@ -570,7 +589,7 @@ export default class Renderer {
 		this.uncoverSecrets();
 		this.handleShooting();
 		for (let enemy of this.enemies)
-			enemy.doSomething(this.playerPos, this.playerDirNormalized, this.simpeRaycast);
+			enemy.doSomething(this.playerPos, this.playerDirNormalized, this.simpleRaycast);
 
 		this.playerDirNormalized.rotate(this.playerMovement.rotate);
 		this.fovVector.rotate(this.playerMovement.rotate);
@@ -610,42 +629,39 @@ export default class Renderer {
 					hline, lineStart, 1, lineHeight);
 			}
 		}
-		// narysowanie znajdziek
-		let collectiblesDistance: { i: number, distance: number }[] = [];
-		for (let cb in this.collectibles) {
-			collectiblesDistance.push({
-				i: parseInt(cb),
-				distance: (this.playerPos.x - this.collectibles[cb].position.x + .5) ** 2
-					+ (this.playerPos.y - this.collectibles[cb].position.y + .5) ** 2
+		// narysowanie spritów: znajdziek i innych obiektów
+		let spritesDistance: { i: number, distance: number }[] = [];
+		for (let sp in this.sprites) {
+			spritesDistance.push({
+				i: parseInt(sp),
+				distance: (this.playerPos.x - this.sprites[sp].position.x + .5) ** 2
+					+ (this.playerPos.y - this.sprites[sp].position.y + .5) ** 2
 			});
 		}
 		// same indeksy, posortowane
-		let collectibleIndexes: number[] = collectiblesDistance.sort((a, b) => b.distance - a.distance).map(val => val.i);
-		for (let cbi of collectibleIndexes) {
+		let spritesIndexes: number[] = spritesDistance.sort((a, b) => b.distance - a.distance).map(val => val.i);
+		for (let spi of spritesIndexes) {
 			// pozycja znajdźki względem gracza
-			let cbPosRelative: Vec2 = new Vec2(this.collectibles[cbi].position.x + .5, this.collectibles[cbi].position.y + .5).subtractVec(this.playerPos);
+			let spPosRelative: Vec2 = new Vec2(this.sprites[spi].position.x + .5, this.sprites[spi].position.y + .5).subtractVec(this.playerPos);
 
 			let invDet: number = 1 / (this.fovVector.x * this.playerDirNormalized.y - this.playerDirNormalized.x * this.fovVector.y);
 
 			let transform: Vec2 = new Vec2(
-				invDet * (this.playerDirNormalized.y * cbPosRelative.x - this.playerDirNormalized.x * cbPosRelative.y),
-				invDet * (-this.fovVector.y * cbPosRelative.x + this.fovVector.x * cbPosRelative.y)
+				invDet * (this.playerDirNormalized.y * spPosRelative.x - this.playerDirNormalized.x * spPosRelative.y),
+				invDet * (-this.fovVector.y * spPosRelative.x + this.fovVector.x * spPosRelative.y)
 			);
 
 			let spriteScreenX = Math.floor((this.canvasSize.x / 2) * (1 + transform.x / transform.y));
 
 			let spriteHeight = Math.abs(Math.floor(this.canvasSize.y / transform.y));
 			let drawStartY = Math.floor(-spriteHeight / 2 + this.canvasSize.y / 2);
-			if (drawStartY < 0) drawStartY = 0;
 			let drawEndY = Math.floor(spriteHeight / 2 + this.canvasSize.y / 2);
-			if (drawEndY >= this.canvasSize.y) drawEndY = this.canvasSize.y - 1;
 
 			let spriteWidth = Math.abs(this.canvasSize.y / transform.y);
 			let drawStartX = Math.floor(spriteScreenX - spriteWidth / 2);
 			let drawEndX = Math.floor(spriteScreenX + spriteWidth / 2);
-			if (drawEndX >= this.canvasSize.x) drawEndX = this.canvasSize.x - 1;
 
-			let p = this.collectibles[cbi].texCoords[0];
+			let p = this.sprites[spi].texCoords[0];
 			let texWidthRatio = 64 / spriteWidth;
 			for (let line = drawStartX > 0 ? drawStartX : 0; line < drawEndX; line++) {
 				let texX = line - drawStartX;

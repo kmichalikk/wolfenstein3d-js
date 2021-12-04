@@ -259,7 +259,7 @@ texture.onload = () => {
 			if (d.type == LevelElemType.Secret) {
 				context.font = Config.cellSize + "px sans-serif";
 				context.textBaseline = "hanging";
-				context.strokeStyle = "#ffffff";
+				context.fillStyle = "#ffffff";
 				switch (d.config.direction) {
 					case Directions.North:
 						context.fillText('↑', d.position.x * Config.cellSize + Config.origin.x, d.position.y * Config.cellSize + Config.origin.y);
