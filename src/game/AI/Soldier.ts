@@ -1,4 +1,4 @@
-import { Vec2, CollisionInfo, BaseEnemy, EnemyType } from "../../utils";
+import { Vec2, CollisionInfo, BaseEnemy, EnemyType, Directions, LevelElemType } from "../../utils";
 //@ts-ignore
 import Texture from '../../gfx/soldiertex.png';
 
@@ -117,7 +117,12 @@ export default class Soldier extends BaseEnemy {
 			// sprawdzamy, czy widzimy gracza
 			let distanceToPlayer = playerPos.subtractVec(this.position).length();
 			let res = raycastFunc(this.position, playerPos.subtractVec(this.position).normalize());
-			let distanceToCollision = res.softCollisions.length > 0 ? res.softCollisions[0].distance : res.distance;
+			// let distanceToCollision = res.softCollisions.length > 0 ? res.softCollisions[0].distance : res.distance;
+			let distanceToCollision = res.distance;
+			for (let sc of res.softCollisions) {
+				if ((sc.collidedWith!.type == LevelElemType.Door || sc.collidedWith!.type == LevelElemType.Secret) && sc.distance < distanceToCollision)
+					distanceToCollision = sc.distance;
+			}
 
 			if (distanceToPlayer < distanceToCollision) {
 				// widzimy gracza
@@ -133,8 +138,43 @@ export default class Soldier extends BaseEnemy {
 			if (collisionTest.softCollisions.length > 0 ? collisionTest.softCollisions[0].distance > 0.3 : collisionTest.distance > 0.3) {
 				this.position = this.position.addVec(this.rotation.multiplyScalar(this.speed));
 			}
-			else if (this.nextDecisionCooldown > 5)
-				this.nextDecisionCooldown = 5;
+			else {
+				// "śliskie" kolizje
+				switch (collisionTest.softCollisions.length > 0 ? collisionTest.softCollisions[0].facingDirection : collisionTest.facingDirection) {
+					case Directions.North:
+					case Directions.South:
+						if (this.rotation.x > 0) {
+							let res = raycastFunc(this.position, new Vec2(1, 0));
+							if (res.softCollisions.length > 0 ? res.softCollisions[0].distance > 0.3 : res.distance > 0.3) {
+								this.position.x += this.rotation.x * 0.02;
+							}
+						}
+						else {
+							let res = raycastFunc(this.position, new Vec2(-1, 0));
+							if (res.softCollisions.length > 0 ? res.softCollisions[0].distance > 0.3 : res.distance > 0.3) {
+								this.position.x += this.rotation.x * 0.02;
+							}
+						}
+						break;
+					case Directions.East:
+					case Directions.West:
+						if (this.rotation.y > 0) {
+							let res = raycastFunc(this.position, new Vec2(0, 1));
+							if (res.softCollisions.length > 0 ? res.softCollisions[0].distance > 0.3 : res.distance > 0.3) {
+								this.position.y += this.rotation.y * 0.02;
+							}
+						}
+						else {
+							let res = raycastFunc(this.position, new Vec2(0, -1));
+							if (res.softCollisions.length > 0 ? res.softCollisions[0].distance > 0.3 : res.distance > 0.3) {
+								this.position.y += this.rotation.y * 0.02;
+							}
+						}
+						break;
+				}
+				if (this.nextDecisionCooldown > 5)
+					this.nextDecisionCooldown = 5;
+			}
 		}
 		else if (!this.frame.match(/death./)) {
 			this.frame = "death0";
