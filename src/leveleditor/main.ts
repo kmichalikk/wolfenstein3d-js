@@ -34,6 +34,34 @@ let settings = document.createElement("div");
 settings.classList.add("le-settings");
 container.append(settings);
 
+// ustawianie rozmiaru planszy
+let levelSizeSettingsDiv = document.createElement("div");
+let trimData = () => {
+	data = data.filter(val => val.position.x < Config.levelWidth && val.position.y < Config.levelHeight);
+}
+// szerokość planszy
+let levelWidthInput = document.createElement('input');
+levelWidthInput.type = "text";
+levelWidthInput.size = 4;
+levelWidthInput.value = Config.levelWidth.toString();
+let levelWidthLabel = document.createElement('label');
+levelWidthLabel.innerText = " szerokość planszy";
+levelSizeSettingsDiv.append(levelWidthInput, levelWidthLabel, document.createElement("br"), document.createElement('br'));
+levelWidthInput.onchange = () => { Config.levelWidth = parseInt(levelWidthInput.value); trimData(); canvasNeedsUpdate = true; };
+// wysokość planszy
+let levelHeightInput = document.createElement('input');
+levelHeightInput.type = "text";
+levelHeightInput.size = 4;
+levelHeightInput.value = Config.levelHeight.toString();
+let levelHeightLabel = document.createElement('label');
+levelHeightLabel.innerText = " wysokość planszy";
+levelSizeSettingsDiv.append(levelHeightInput, levelHeightLabel, document.createElement("br"));
+levelHeightInput.onchange = () => { Config.levelHeight = parseInt(levelHeightInput.value); trimData(); canvasNeedsUpdate = true; };
+settings.append(levelSizeSettingsDiv);
+
+let wallSettingsDiv = document.createElement("div");
+wallSettingsDiv.classList.add('le-wall-settings');
+
 // niepuste komórki na planszy
 let data: LevelElem[] = [];
 // aktualny element
@@ -45,9 +73,7 @@ addEventListener('selectorChanged', ((e: CustomEvent) => {
 	currElem = JSON.parse(JSON.stringify(e.detail));
 	// ścianom można miksować tekstury
 	if (currElem && currElem.type == LevelElemType.Wall) {
-		settings.innerHTML = "";
-		let div = document.createElement("div");
-		div.classList.add('le-wall-settings');
+		wallSettingsDiv.innerHTML = "";
 		let n = document.createElement("div");
 		n.classList.add('le-north');
 		let e = document.createElement("div");
@@ -73,11 +99,11 @@ addEventListener('selectorChanged', ((e: CustomEvent) => {
 				val.style.backgroundPosition = `left ${-currElem!.texCoords[index].x}px top ${-currElem!.texCoords[index].y}px`;
 			}
 		})
-		div.append(n, e, s, w);
-		settings.append(div);
+		wallSettingsDiv.append(n, e, s, w);
+		settings.append(wallSettingsDiv);
 	}
 	else {
-		settings.innerHTML = "";
+		wallSettingsDiv.innerHTML = "";
 	}
 }) as EventListener)
 document.body.prepend(selector.DOM)
