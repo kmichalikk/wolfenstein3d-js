@@ -412,6 +412,13 @@ export default class Renderer {
 									}
 									else {
 										clearInterval(interval);
+										this.levelData.data[secret.position.x + 1][secret.position.y] = {
+											type: LevelElemType.Wall,
+											config: {},
+											position: { x: secret.position.x + 1, y: secret.position.y },
+											collidable: true,
+											texCoords: secret.texCoords
+										}
 										this.levelData.data[secret.position.x][secret.position.y] = null;
 									}
 								}
@@ -434,6 +441,13 @@ export default class Renderer {
 									}
 									else {
 										clearInterval(interval);
+										this.levelData.data[secret.position.x - 1][secret.position.y] = {
+											type: LevelElemType.Wall,
+											config: {},
+											position: { x: secret.position.x - 1, y: secret.position.y },
+											collidable: true,
+											texCoords: secret.texCoords
+										}
 										this.levelData.data[secret.position.x][secret.position.y] = null;
 									}
 								}
@@ -456,6 +470,13 @@ export default class Renderer {
 									}
 									else {
 										clearInterval(interval);
+										this.levelData.data[secret.position.x][secret.position.y - 1] = {
+											type: LevelElemType.Wall,
+											config: {},
+											position: { x: secret.position.x, y: secret.position.y - 1 },
+											collidable: true,
+											texCoords: secret.texCoords
+										}
 										this.levelData.data[secret.position.x][secret.position.y] = null;
 									}
 								}
@@ -478,6 +499,13 @@ export default class Renderer {
 									}
 									else {
 										clearInterval(interval);
+										this.levelData.data[secret.position.x][secret.position.y + 1] = {
+											type: LevelElemType.Wall,
+											config: {},
+											position: { x: secret.position.x, y: secret.position.y + 1 },
+											collidable: true,
+											texCoords: secret.texCoords
+										}
 										this.levelData.data[secret.position.x][secret.position.y] = null;
 									}
 								}

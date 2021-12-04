@@ -6,7 +6,7 @@ import Mappings from '../gfx/env_mappings.json';
 import Bg from "../gfx/hip-square.png";
 //@ts-ignore
 import "./style.css";
-import { LevelElem, LevelElemType } from "../utils";
+import { Directions, LevelElem, LevelElemType } from "../utils";
 import Selectors from './Selector';
 
 document.body.style.backgroundImage = `url(${Bg})`;
@@ -100,6 +100,29 @@ addEventListener('selectorChanged', ((e: CustomEvent) => {
 			}
 		})
 		wallSettingsDiv.append(n, e, s, w);
+		let secret = document.createElement('div');
+		let directions = ['', '↑', '→', '↓', '←'];
+		let dirIndex = 1;
+		secret.classList.add("le-secret");
+		secret.onclick = () => {
+			secret.innerText = directions[dirIndex];
+			if (dirIndex > 0) {
+				currElem!.type = LevelElemType.Secret;
+				switch (dirIndex) {
+					case 1: currElem!.config.direction = Directions.North; break;
+					case 2: currElem!.config.direction = Directions.East; break;
+					case 3: currElem!.config.direction = Directions.South; break;
+					case 4: currElem!.config.direction = Directions.West; break;
+				}
+			}
+			else {
+				currElem!.type = LevelElemType.Wall;
+				currElem!.config.direction = undefined;
+			}
+			dirIndex++;
+			dirIndex %= 5;
+		}
+		wallSettingsDiv.append(secret);
 		settings.append(wallSettingsDiv);
 	}
 	else {
@@ -200,6 +223,7 @@ texture.onload = () => {
 			// dane się zmieniły, rysujemy od zera
 			context.clearRect(0, 0, 640, 480);
 			context.fillStyle = "#ffffff";
+			context.strokeStyle = "#000000";
 			for (let i = 0; i < Config.levelWidth; i++) {
 				for (let j = 0; j < Config.levelHeight; j++) {
 					context.fillRect(i * Config.cellSize + Config.origin.x, j * Config.cellSize + Config.origin.y, Config.cellSize, Config.cellSize);
@@ -231,6 +255,25 @@ texture.onload = () => {
 					Config.cellSize,
 					Config.cellSize
 				);
+			}
+			if (d.type == LevelElemType.Secret) {
+				context.font = Config.cellSize + "px sans-serif";
+				context.textBaseline = "hanging";
+				context.strokeStyle = "#ffffff";
+				switch (d.config.direction) {
+					case Directions.North:
+						context.fillText('↑', d.position.x * Config.cellSize + Config.origin.x, d.position.y * Config.cellSize + Config.origin.y);
+						break;
+					case Directions.East:
+						context.fillText('→', d.position.x * Config.cellSize + Config.origin.x, d.position.y * Config.cellSize + Config.origin.y);
+						break;
+					case Directions.South:
+						context.fillText('↓', d.position.x * Config.cellSize + Config.origin.x, d.position.y * Config.cellSize + Config.origin.y);
+						break;
+					case Directions.West:
+						context.fillText('←', d.position.x * Config.cellSize + Config.origin.x, d.position.y * Config.cellSize + Config.origin.y);
+						break;
+				}
 			}
 		}
 		requestAnimationFrame(drawFunc);
