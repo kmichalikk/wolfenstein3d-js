@@ -558,7 +558,24 @@ export default class Renderer {
 			let res = this.extendedRaycast(this.playerPos, rayForCurrLine);
 			wallDistanceByScreenLine.push(res.distance);
 			if (res.collidedWith) {
-				let texCoords = res.collidedWith.texCoords[0];
+				let texCoords: Vec2Interface;
+				switch (res.facingDirection) {
+					case Directions.North:
+						texCoords = res.collidedWith.texCoords[0];
+						break;
+					case Directions.East:
+						texCoords = res.collidedWith.texCoords[1];
+						break;
+					case Directions.South:
+						texCoords = res.collidedWith.texCoords[2];
+						break;
+					case Directions.West:
+						texCoords = res.collidedWith.texCoords[3];
+						break;
+					default:
+						texCoords = res.collidedWith.texCoords[0];
+						break;
+				}
 				lineHeight = Math.round((this.canvasSize.y / res.distance));
 				lineStart = (this.canvasSize.y - lineHeight) / 2;
 				this.context.drawImage(this.texture, texCoords.x + res.texOffset * 64, texCoords.y, 1, 64,

@@ -1,6 +1,8 @@
 //@ts-ignore
 import Texture from '../gfx/texture.png';
 //@ts-ignore
+import Mappings from '../gfx/env_mappings.json';
+//@ts-ignore
 import Bg from "../gfx/hip-square.png";
 //@ts-ignore
 import "./style.css";
@@ -23,15 +25,6 @@ let Config = {
 Config.origin.x = 640 / 2 - Config.levelWidth / 2 * Config.cellSize;
 Config.origin.y = 480 / 2 - Config.levelHeight / 2 * Config.cellSize;
 
-// niepuste komórki na planszy
-let data: LevelElem[] = [];
-let currElem: (LevelElem | null) = null;
-let selector: Selectors = new Selectors();
-addEventListener('selectorChanged', ((e: CustomEvent) => {
-	currElem = e.detail;
-}) as EventListener)
-document.body.append(selector.DOM)
-
 let container = document.createElement("div");
 container.classList.add("le-container");
 document.body.append(container as HTMLDivElement);
@@ -40,6 +33,55 @@ document.body.append(container as HTMLDivElement);
 let settings = document.createElement("div");
 settings.classList.add("le-settings");
 container.append(settings);
+
+// niepuste komórki na planszy
+let data: LevelElem[] = [];
+// aktualny element
+let currElem: (LevelElem | null) = null;
+
+// wybór elementów
+let selector: Selectors = new Selectors();
+addEventListener('selectorChanged', ((e: CustomEvent) => {
+	currElem = JSON.parse(JSON.stringify(e.detail));
+	// ścianom można miksować tekstury
+	if (currElem && currElem.type == LevelElemType.Wall) {
+		settings.innerHTML = "";
+		let div = document.createElement("div");
+		div.classList.add('le-wall-settings');
+		let n = document.createElement("div");
+		n.classList.add('le-north');
+		let e = document.createElement("div");
+		e.classList.add('le-east');
+		let s = document.createElement("div");
+		s.classList.add('le-south');
+		let w = document.createElement("div");
+		w.classList.add('le-west');
+		[n, e, s, w].forEach((val, index) => {
+			val.style.backgroundImage = `url(${Texture})`;
+			val.style.backgroundPosition = `left ${-currElem!.texCoords[0].x}px top ${-currElem!.texCoords[0].y}px`;
+			let texIndex = 0;
+			let availableTextures = [
+				Mappings["woodwall"],
+				Mappings["brickwall"],
+				Mappings["rockwall"],
+				Mappings["doors-side"]
+			]
+			val.onclick = () => {
+				currElem!.texCoords[index] = availableTextures[texIndex];
+				texIndex++;
+				texIndex = texIndex % 4;
+				val.style.backgroundPosition = `left ${-currElem!.texCoords[index].x}px top ${-currElem!.texCoords[index].y}px`;
+			}
+		})
+		div.append(n, e, s, w);
+		settings.append(div);
+	}
+	else {
+		settings.innerHTML = "";
+	}
+}) as EventListener)
+document.body.prepend(selector.DOM)
+
 
 //canvas
 let canvas: HTMLCanvasElement = document.createElement("canvas");
@@ -140,17 +182,30 @@ texture.onload = () => {
 			}
 		}
 		for (let d of data) {
-			context.drawImage(
-				texture,
-				d.texCoords[0].x,
-				d.texCoords[0].y,
-				64,
-				64,
-				d.position.x * Config.cellSize + Config.origin.x,
-				d.position.y * Config.cellSize + Config.origin.y,
-				Config.cellSize,
-				Config.cellSize
-			);
+			if (d.texCoords.length == 1 || (d.texCoords[0].x == d.texCoords[1].x && d.texCoords[1].x == d.texCoords[2].x
+				&& d.texCoords[2].x == d.texCoords[3].x && d.texCoords[0].y == d.texCoords[1].y && d.texCoords[1].y == d.texCoords[2].y
+				&& d.texCoords[2].y == d.texCoords[3].y)) {
+				context.drawImage(
+					texture,
+					d.texCoords[0].x,
+					d.texCoords[0].y,
+					64,
+					64,
+					d.position.x * Config.cellSize + Config.origin.x,
+					d.position.y * Config.cellSize + Config.origin.y,
+					Config.cellSize,
+					Config.cellSize
+				);
+			}
+			else {
+				context.fillStyle = "#ff00ff";
+				context.fillRect(
+					d.position.x * Config.cellSize + Config.origin.x,
+					d.position.y * Config.cellSize + Config.origin.y,
+					Config.cellSize,
+					Config.cellSize
+				);
+			}
 		}
 		requestAnimationFrame(drawFunc);
 	}
