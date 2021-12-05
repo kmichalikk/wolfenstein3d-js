@@ -292,7 +292,12 @@ exportButton.onclick = () => {
 				exportedData[i].push(null);
 			}
 			else {
-				exportedData[i].push(elem);
+				elem = JSON.parse(JSON.stringify(elem));
+				if (elem!.type != LevelElemType.Wall && elem!.type != LevelElemType.Secret && elem!.type != LevelElemType.Door) {
+					elem!.position.x += .5;
+					elem!.position.y += .5;
+				}
+				exportedData[i].push(elem!);
 			}
 		}
 	}

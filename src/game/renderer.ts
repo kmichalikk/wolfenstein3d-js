@@ -1,5 +1,7 @@
 //@ts-ignore
 import Texture from '../gfx/texture.png';
+//@ts-ignore
+import Mappings from '../gfx/env_mappings.json';
 import { BaseEnemy, CollectibleTypes, CollisionInfo, Directions, EnemyType, LevelElem, LevelElemType, Vec2, Vec2Interface, WallTypes, Weapons } from "../utils";
 import Dog from "./AI/Dog";
 import Soldier from "./AI/Soldier";
@@ -581,13 +583,35 @@ export default class Renderer {
 		}
 	}
 
+	handleCollectibles = () => {
+		for (let c of this.collectibles) {
+			if (this.playerPos.subtractVec(c.position as Vec2).length() < 0.5) {
+				this.collectibles = this.collectibles.filter(val => val != c);
+				this.sprites = this.sprites.filter(val => val != c);
+				switch (c.config.typeExtended) {
+					case CollectibleTypes.Ammo:
+						this.ammo += Math.round(Math.random() * 4 + 4);
+						dispatchEvent(new CustomEvent("ammoChanged", { detail: this.ammo }));
+						break;
+					case CollectibleTypes.Gold:
+						this.score += 100;
+						dispatchEvent(new CustomEvent("scoreChanged", { detail: this.score }));
+						break;
+				}
+			}
+		}
+	}
+
 	handleShooting = () => {
-		if (this.ammo > 0 && this.playerMovement.shooting && !this.waitForReady && !this.waitForTriggerRelease) {
+		if ((this.ammo > 0 || this.currentWeapon == Weapons.Knife)
+			&& this.playerMovement.shooting && !this.waitForReady && !this.waitForTriggerRelease) {
 			if (this.currentWeapon == Weapons.Knife || this.currentWeapon == Weapons.Pistol) {
 				this.waitForReady = true;
 				this.handUI.shootOnce(() => {
-					this.ammo--;
-					dispatchEvent(new CustomEvent("ammoChanged", { detail: this.ammo }));
+					if (this.currentWeapon == Weapons.Pistol) {
+						this.ammo--;
+						dispatchEvent(new CustomEvent("ammoChanged", { detail: this.ammo }));
+					}
 					this.checkHit();
 					this.waitForReady = false;
 				});
@@ -633,6 +657,23 @@ export default class Renderer {
 					enemy.HP -= damage;
 					if (enemy.HP <= 0) {
 						this.score += 100;
+						// gdy przeciwnik umiera, czasem zostawia magazynek
+						if (Math.random() > 0.5 && enemy.type == EnemyType.Soldier) {
+							let ammo: LevelElem = {
+								type: LevelElemType.Collectible,
+								config: {
+									typeExtended: CollectibleTypes.Ammo
+								},
+								collidable: false,
+								position: {
+									x: enemy.position.x + Math.random() - 0.5,
+									y: enemy.position.y + Math.random() - 0.5
+								},
+								texCoords: [Mappings["ammo"]]
+							}
+							this.collectibles.push(ammo);
+							this.sprites.push(ammo);
+						}
 						dispatchEvent(new CustomEvent("scoreChanged", { detail: this.score }))
 					}
 				}
@@ -644,6 +685,7 @@ export default class Renderer {
 		this.movePlayer();
 		this.openDoors();
 		this.uncoverSecrets();
+		this.handleCollectibles();
 		this.handleShooting();
 		for (let enemy of this.enemies)
 			enemy.doSomething(this.playerPos, this.playerDirNormalized, this.simpleRaycast);
@@ -691,15 +733,15 @@ export default class Renderer {
 		for (let sp in this.sprites) {
 			spritesDistance.push({
 				i: parseInt(sp),
-				distance: (this.playerPos.x - this.sprites[sp].position.x + .5) ** 2
-					+ (this.playerPos.y - this.sprites[sp].position.y + .5) ** 2
+				distance: (this.playerPos.x - this.sprites[sp].position.x) ** 2
+					+ (this.playerPos.y - this.sprites[sp].position.y) ** 2
 			});
 		}
 		// same indeksy, posortowane
 		let spritesIndexes: number[] = spritesDistance.sort((a, b) => b.distance - a.distance).map(val => val.i);
 		for (let spi of spritesIndexes) {
 			// pozycja znajdźki względem gracza
-			let spPosRelative: Vec2 = new Vec2(this.sprites[spi].position.x + .5, this.sprites[spi].position.y + .5).subtractVec(this.playerPos);
+			let spPosRelative: Vec2 = new Vec2(this.sprites[spi].position.x, this.sprites[spi].position.y).subtractVec(this.playerPos);
 
 			let invDet: number = 1 / (this.fovVector.x * this.playerDirNormalized.y - this.playerDirNormalized.x * this.fovVector.y);
 
