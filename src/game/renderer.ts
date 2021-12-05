@@ -28,6 +28,10 @@ export default class Renderer {
 	enemies: BaseEnemy[] = [];
 	// znajdźki
 	collectibles: LevelElem[] = [];
+	// wynik
+	score: number = 0;
+	// amunicja
+	ammo: number = 8;
 	// kamera
 	playerPos: Vec2; // pozycja gracza
 	playerDirNormalized: Vec2; // znormalizowany kierunek gracza
@@ -578,10 +582,12 @@ export default class Renderer {
 	}
 
 	handleShooting = () => {
-		if (this.playerMovement.shooting && !this.waitForReady && !this.waitForTriggerRelease) {
+		if (this.ammo > 0 && this.playerMovement.shooting && !this.waitForReady && !this.waitForTriggerRelease) {
 			if (this.currentWeapon == Weapons.Knife || this.currentWeapon == Weapons.Pistol) {
 				this.waitForReady = true;
 				this.handUI.shootOnce(() => {
+					this.ammo--;
+					dispatchEvent(new CustomEvent("ammoChanged", { detail: this.ammo }));
 					this.checkHit();
 					this.waitForReady = false;
 				});
@@ -590,8 +596,12 @@ export default class Renderer {
 			else {
 				this.waitForReady = true;
 				this.handUI.shootStart(() => {
+					this.ammo--;
+					dispatchEvent(new CustomEvent("ammoChanged", { detail: this.ammo }));
 					this.checkHit();
 					this.waitForReady = false;
+					if (this.ammo <= 0)
+						this.handUI.shootStop();
 				});
 			}
 		}
@@ -604,22 +614,28 @@ export default class Renderer {
 
 	checkHit = () => {
 		for (let enemy of this.enemies) {
-			let shootAngle = this.playerDirNormalized.angle();
-			let enemyAngle = enemy.position.angleFromAngleArm(this.playerPos);
-			let diff = Math.abs(shootAngle - enemyAngle);
-			let diff2 = Math.abs(2 * Math.PI - diff);
-			diff = diff < diff2 ? diff : diff2;
-			let allowedAngle = Math.atan2(0.18, enemy.position.subtractVec(this.playerPos).length())
-			let distanceToEnemy = this.playerPos.subtractVec(enemy.position).length();
-			if (diff < allowedAngle && (this.currentWeapon != Weapons.Knife || distanceToEnemy < 1.2)) {
-				let damage: number = 0;
-				switch (this.currentWeapon) {
-					case Weapons.Knife: damage = 40; break;
-					case Weapons.Pistol: damage = 60; break;
-					case Weapons.Rifle: damage = 80; break;
-					case Weapons.Machinegun: damage = 120; break;
+			if (enemy.HP > 0) {
+				let shootAngle = this.playerDirNormalized.angle();
+				let enemyAngle = enemy.position.angleFromAngleArm(this.playerPos);
+				let diff = Math.abs(shootAngle - enemyAngle);
+				let diff2 = Math.abs(2 * Math.PI - diff);
+				diff = diff < diff2 ? diff : diff2;
+				let allowedAngle = Math.atan2(0.18, enemy.position.subtractVec(this.playerPos).length())
+				let distanceToEnemy = this.playerPos.subtractVec(enemy.position).length();
+				if (diff < allowedAngle && (this.currentWeapon != Weapons.Knife || distanceToEnemy < 1.2)) {
+					let damage: number = 0;
+					switch (this.currentWeapon) {
+						case Weapons.Knife: damage = 40; break;
+						case Weapons.Pistol: damage = 60; break;
+						case Weapons.Rifle: damage = 80; break;
+						case Weapons.Machinegun: damage = 120; break;
+					}
+					enemy.HP -= damage;
+					if (enemy.HP <= 0) {
+						this.score += 100;
+						dispatchEvent(new CustomEvent("scoreChanged", { detail: this.score }))
+					}
 				}
-				enemy.HP -= damage;
 			}
 		}
 	}
@@ -719,51 +735,6 @@ export default class Renderer {
 				}
 			}
 		}
-
-		// narysowanie przeciwników
-		// let enemiesDistance: { i: number, distance: number }[] = [];
-		// for (let cb in this.enemies) {
-		// 	enemiesDistance.push({
-		// 		i: parseInt(cb),
-		// 		distance: (this.playerPos.x - this.enemies[cb].position.x) ** 2
-		// 			+ (this.playerPos.y - this.enemies[cb].position.y) ** 2
-		// 	});
-		// }
-		// // same indeksy, posortowane
-		// let enemiesIndexes: number[] = enemiesDistance.sort((a, b) => b.distance - a.distance).map(val => val.i);
-		// for (let cbi of enemiesIndexes) {
-		// 	// pozycja znajdźki względem gracza
-		// 	let cbPosRelative: Vec2 = new Vec2(this.enemies[cbi].position.x, this.enemies[cbi].position.y).subtractVec(this.playerPos);
-
-		// 	let invDet: number = 1 / (this.fovVector.x * this.playerDirNormalized.y - this.playerDirNormalized.x * this.fovVector.y);
-
-		// 	let transform: Vec2 = new Vec2(
-		// 		invDet * (this.playerDirNormalized.y * cbPosRelative.x - this.playerDirNormalized.x * cbPosRelative.y),
-		// 		invDet * (-this.fovVector.y * cbPosRelative.x + this.fovVector.x * cbPosRelative.y)
-		// 	);
-
-		// 	let spriteScreenX = Math.floor((this.canvasSize.x / 2) * (1 + transform.x / transform.y));
-
-		// 	let spriteHeight = Math.abs(Math.floor(this.canvasSize.y / transform.y));
-		// 	let drawStartY = Math.floor(-spriteHeight / 2 + this.canvasSize.y / 2);
-		// 	if (drawStartY < 0) drawStartY = 0;
-		// 	let drawEndY = Math.floor(spriteHeight / 2 + this.canvasSize.y / 2);
-		// 	if (drawEndY >= this.canvasSize.y) drawEndY = this.canvasSize.y - 1;
-
-		// 	let spriteWidth = Math.abs(this.canvasSize.y / transform.y);
-		// 	let drawStartX = Math.floor(spriteScreenX - spriteWidth / 2);
-		// 	let drawEndX = Math.floor(spriteScreenX + spriteWidth / 2);
-		// 	if (drawEndX >= this.canvasSize.x) drawEndX = this.canvasSize.x - 1;
-		// 	let p = this.enemies[cbi].texCoords;
-		// 	let texWidthRatio = 64 / spriteWidth;
-		// 	for (let line = drawStartX > 0 ? drawStartX : 0; line < drawEndX; line++) {
-		// 		let texX = line - drawStartX;
-		// 		texX *= texWidthRatio;
-		// 		if (transform.y > 0 && line > 0 && line < this.canvasSize.x && transform.y < wallDistanceByScreenLine[line]) {
-		// 			this.context.drawImage(this.enemies[cbi].texture, p.x + texX, p.y, 1, 64, line, drawStartY, 1, spriteHeight);
-		// 		}
-		// 	}
-		// }
 		this.handUI.draw();
 
 		requestAnimationFrame(this.drawFunc);
@@ -799,18 +770,22 @@ export default class Renderer {
 			case '1':
 				this.currentWeapon = Weapons.Knife;
 				this.handUI.setWeapon(Weapons.Knife);
+				dispatchEvent(new CustomEvent("weaponChanged", { detail: Weapons.Knife }))
 				break;
 			case '2':
 				this.currentWeapon = Weapons.Pistol;
 				this.handUI.setWeapon(Weapons.Pistol);
+				dispatchEvent(new CustomEvent("weaponChanged", { detail: Weapons.Pistol }))
 				break;
 			case '3':
 				this.currentWeapon = Weapons.Rifle;
 				this.handUI.setWeapon(Weapons.Rifle);
+				dispatchEvent(new CustomEvent("weaponChanged", { detail: Weapons.Rifle }))
 				break;
 			case '4':
 				this.currentWeapon = Weapons.Machinegun;
 				this.handUI.setWeapon(Weapons.Machinegun);
+				dispatchEvent(new CustomEvent("weaponChanged", { detail: Weapons.Machinegun }))
 				break;
 		}
 	}

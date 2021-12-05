@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 body, html {
 	height: 100%;
 	margin: 0;
@@ -5,34 +7,99 @@ body, html {
 }
 
 body {
+	font-family: 'Press Start 2P', cursive;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-direction: column;
-	background-color: lightgray;
+	background-color: gray;
 }
 
 .game-canvas {
-	border-radius: 4px;
 	background-color: #636363;
 	position: relative;
+	border-width: 4px;
+	border-style: solid;
+	border-top-color: #333;
+	border-left-color: #333;
+	border-bottom-color: #aaa;
+	border-right-color: #aaa;
+}
+
+.game-container {
+	display: flex;
+	flex-direction: column;
 }
 
 @media screen and (min-width: 1024px) {
-	.game-canvas {
+	.game-container {
 		width: 60%;
 		height: auto;
 	}
 }
 @media screen and (max-width: 1024px) {
-	.game-canvas {
+	.game-container {
 		width: 80%;
 		height: auto;
 	}
 }
 @media screen and (max-width: 768px) {
-	.game-canvas {
+	.game-container {
 		width: 90%;
 		height: auto;
 	}
+}
+
+.info-bar {
+	font-size: 0.8rem;
+	margin-top: 8px;
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.info-tile {
+	background-color: #33f;
+	color: white;
+	height: 64px;
+	display: flex;	
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-around;
+	border-style: solid;
+	border-width: 4px;
+	border-top-color: lightsteelblue;
+	border-left-color: lightsteelblue;
+	border-bottom-color: darkblue;
+	border-right-color: darkblue;
+	padding: 6px;
+}
+
+.info-level {
+	width: 10%;
+}
+
+.info-score {
+	width: 12%;
+}
+
+.info-lives {
+	width: 10%;
+}
+
+.info-face {
+	min-width: 64px;
+}
+
+.info-health {
+	width: 10%;
+}
+
+.info-ammo {
+	width: 10%;
+}
+
+.info-weapon {
+	width: 18%;
 }
