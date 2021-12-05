@@ -84,6 +84,12 @@ export default class Soldier extends BaseEnemy {
 								this.nextDecisionCooldown = 24;
 								this.frame = "attack0";
 								this.shooting = true;
+								setTimeout(() => {
+									// nie zawsze trafia
+									if (Math.random() > 0.1) {
+										dispatchEvent(new CustomEvent("shotPlayer", { detail: 10 }));
+									}
+								}, 200)
 							}
 							// lekkie odchylenie od prostych kątów
 							this.rotation.rotate(Math.random() * 0.5 - 0.25);
@@ -94,6 +100,12 @@ export default class Soldier extends BaseEnemy {
 							this.nextDecisionCooldown = 24;
 							this.frame = "attack0";
 							this.shooting = true;
+							setTimeout(() => {
+								// nie zawsze trafia
+								if (Math.random() > 0.1) {
+									dispatchEvent(new CustomEvent("shotPlayer", { detail: 10 }));
+								}
+							}, 200)
 						}
 					}
 					else if (this.playerLastPos) {

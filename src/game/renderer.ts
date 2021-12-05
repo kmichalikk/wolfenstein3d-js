@@ -34,6 +34,8 @@ export default class Renderer {
 	score: number = 0;
 	// amunicja
 	ammo: number = 8;
+	// HP
+	HP: number = 100;
 	// kamera
 	playerPos: Vec2; // pozycja gracza
 	playerDirNormalized: Vec2; // znormalizowany kierunek gracza
@@ -50,6 +52,8 @@ export default class Renderer {
 
 	// strzelanie
 	currentWeapon: Weapons = Weapons.Pistol;
+	hasRifle: boolean = false;
+	hasMachinegun: boolean = false;
 	weaponCooldown: number = 0;
 	waitForReady: boolean = false;
 	waitForTriggerRelease: boolean = false;
@@ -85,6 +89,17 @@ export default class Renderer {
 
 		this.handUI = new HandUI(this.context, this.canvasSize as Vec2);
 		this.handUI.setWeapon(Weapons.Pistol);
+
+		// kiedy przeciwnik trafia
+		addEventListener("shotPlayer", ((e: CustomEvent) => {
+			if (this.HP > 1 && this.HP - e.detail <= 0) {
+				this.HP = 1;
+			}
+			else {
+				this.HP -= e.detail;
+			}
+			dispatchEvent(new CustomEvent("healthChanged", { detail: this.HP }));
+		}) as EventListener);
 	}
 
 	loadLevel = (data: LevelFile) => {
@@ -586,16 +601,45 @@ export default class Renderer {
 	handleCollectibles = () => {
 		for (let c of this.collectibles) {
 			if (this.playerPos.subtractVec(c.position as Vec2).length() < 0.5) {
-				this.collectibles = this.collectibles.filter(val => val != c);
-				this.sprites = this.sprites.filter(val => val != c);
 				switch (c.config.typeExtended) {
 					case CollectibleTypes.Ammo:
 						this.ammo += Math.round(Math.random() * 4 + 4);
 						dispatchEvent(new CustomEvent("ammoChanged", { detail: this.ammo }));
+						this.collectibles = this.collectibles.filter(val => val != c);
+						this.sprites = this.sprites.filter(val => val != c);
 						break;
 					case CollectibleTypes.Gold:
 						this.score += 100;
 						dispatchEvent(new CustomEvent("scoreChanged", { detail: this.score }));
+						this.collectibles = this.collectibles.filter(val => val != c);
+						this.sprites = this.sprites.filter(val => val != c);
+						break;
+					case CollectibleTypes.HealthSm:
+						if (this.HP < 100) {
+							this.HP += 30;
+							if (this.HP > 100) this.HP = 100;
+							dispatchEvent(new CustomEvent("healthChanged", { detail: this.HP }));
+							this.collectibles = this.collectibles.filter(val => val != c);
+							this.sprites = this.sprites.filter(val => val != c);
+						}
+						break;
+					case CollectibleTypes.HealthLg:
+						if (this.HP < 100) {
+							this.HP = 100;
+							dispatchEvent(new CustomEvent("healthChanged", { detail: this.HP }));
+							this.collectibles = this.collectibles.filter(val => val != c);
+							this.sprites = this.sprites.filter(val => val != c);
+						}
+						break;
+					case CollectibleTypes.Rifle:
+						this.hasRifle = true;
+						this.collectibles = this.collectibles.filter(val => val.config.typeExtended != CollectibleTypes.Rifle);
+						this.sprites = this.sprites.filter(val => val != c);
+						break;
+					case CollectibleTypes.Machinegun:
+						this.hasMachinegun = true;
+						this.collectibles = this.collectibles.filter(val => val.config.typeExtended != CollectibleTypes.Machinegun);
+						this.sprites = this.sprites.filter(val => val != c);
 						break;
 				}
 			}
@@ -777,8 +821,8 @@ export default class Renderer {
 				}
 			}
 		}
-		this.handUI.draw();
 
+		this.handUI.draw();
 		requestAnimationFrame(this.drawFunc);
 	}
 
@@ -820,14 +864,18 @@ export default class Renderer {
 				dispatchEvent(new CustomEvent("weaponChanged", { detail: Weapons.Pistol }))
 				break;
 			case '3':
-				this.currentWeapon = Weapons.Rifle;
-				this.handUI.setWeapon(Weapons.Rifle);
-				dispatchEvent(new CustomEvent("weaponChanged", { detail: Weapons.Rifle }))
+				if (this.hasRifle) {
+					this.currentWeapon = Weapons.Rifle;
+					this.handUI.setWeapon(Weapons.Rifle);
+					dispatchEvent(new CustomEvent("weaponChanged", { detail: Weapons.Rifle }))
+				}
 				break;
 			case '4':
-				this.currentWeapon = Weapons.Machinegun;
-				this.handUI.setWeapon(Weapons.Machinegun);
-				dispatchEvent(new CustomEvent("weaponChanged", { detail: Weapons.Machinegun }))
+				if (this.hasMachinegun) {
+					this.currentWeapon = Weapons.Machinegun;
+					this.handUI.setWeapon(Weapons.Machinegun);
+					dispatchEvent(new CustomEvent("weaponChanged", { detail: Weapons.Machinegun }))
+				}
 				break;
 		}
 	}
