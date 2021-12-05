@@ -1,10 +1,12 @@
 import Renderer from './renderer';
+import AudioManager from './Audio';
 import { Vec2, Weapons } from '../utils';
 // @ts-ignore
 import level from '../../levels/1.json';
 
 import "./style.css";
 let renderer = new Renderer(new Vec2(360, 240));
+let audioManager = new AudioManager();
 
 let container = document.createElement("div");
 container.classList.add("game-container");
@@ -78,3 +80,4 @@ infoBar.append(infoWeapon);
 
 renderer.loadLevel(level);
 renderer.startGameLoop();
+dispatchEvent(new CustomEvent("playBackgroundSound"));

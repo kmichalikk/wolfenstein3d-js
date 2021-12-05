@@ -84,6 +84,7 @@ export default class Soldier extends BaseEnemy {
 								this.nextDecisionCooldown = 24;
 								this.frame = "attack0";
 								this.shooting = true;
+								dispatchEvent(new CustomEvent("playGunSound"));
 								setTimeout(() => {
 									// nie zawsze trafia
 									if (Math.random() > 0.1) {
@@ -100,6 +101,7 @@ export default class Soldier extends BaseEnemy {
 							this.nextDecisionCooldown = 24;
 							this.frame = "attack0";
 							this.shooting = true;
+							dispatchEvent(new CustomEvent("playGunSound"));
 							setTimeout(() => {
 								// nie zawsze trafia
 								if (Math.random() > 0.1) {

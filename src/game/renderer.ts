@@ -418,7 +418,7 @@ export default class Renderer {
 				this.playerPos = this.playerPos.addVec(
 					this.playerDirNormalized.multiplyScalar(this.playerMovement.forward));
 			}
-			else {
+			else if (this.playerMovement.forward > 0) {
 				// "śliskie" kolizje
 				switch (res.softCollisions.length > 0 ? res.softCollisions[0].facingDirection : res.facingDirection) {
 					case Directions.North:
@@ -461,6 +461,7 @@ export default class Renderer {
 			if (this.playerPos.subtractVec(new Vec2(door.position.x + 0.5, door.position.y + 0.5)).length() < 1
 				&& door.config.openness! == 0
 				&& this.playerMovement.interaction) {
+				dispatchEvent(new CustomEvent("playDoorSlideSound"));
 				let interval = setInterval(() => {
 					door.config.openness! += 0.01;
 					if (door.config.openness! >= 1) {
@@ -481,6 +482,7 @@ export default class Renderer {
 						if (subtractVec.x < 0) {
 							this.secrets = this.secrets.filter(val => val != secret);
 							let step = 0;
+							dispatchEvent(new CustomEvent("playDoorSlideSound"));
 							let interval = setInterval(() => {
 								secret.config.perpOffset! += 0.01;
 								if (secret.config.perpOffset! >= 1) {
@@ -510,6 +512,7 @@ export default class Renderer {
 						if (subtractVec.x > 0) {
 							this.secrets = this.secrets.filter(val => val != secret);
 							let step = 0;
+							dispatchEvent(new CustomEvent("playDoorSlideSound"));
 							let interval = setInterval(() => {
 								secret.config.perpOffset! += 0.01;
 								if (secret.config.perpOffset! >= 1) {
@@ -539,6 +542,7 @@ export default class Renderer {
 						if (subtractVec.y > 0) {
 							this.secrets = this.secrets.filter(val => val != secret);
 							let step = 0;
+							dispatchEvent(new CustomEvent("playDoorSlideSound"));
 							let interval = setInterval(() => {
 								secret.config.perpOffset! += 0.01;
 								if (secret.config.perpOffset! >= 1) {
@@ -568,6 +572,7 @@ export default class Renderer {
 						if (subtractVec.y < 0) {
 							this.secrets = this.secrets.filter(val => val != secret);
 							let step = 0;
+							dispatchEvent(new CustomEvent("playDoorSlideSound"));
 							let interval = setInterval(() => {
 								secret.config.perpOffset! += 0.01;
 								if (secret.config.perpOffset! >= 1) {
@@ -605,12 +610,17 @@ export default class Renderer {
 					case CollectibleTypes.Ammo:
 						this.ammo += Math.round(Math.random() * 4 + 4);
 						dispatchEvent(new CustomEvent("ammoChanged", { detail: this.ammo }));
+						dispatchEvent(new CustomEvent("playCollectGunSound"));
 						this.collectibles = this.collectibles.filter(val => val != c);
 						this.sprites = this.sprites.filter(val => val != c);
 						break;
 					case CollectibleTypes.Gold:
 						this.score += 100;
 						dispatchEvent(new CustomEvent("scoreChanged", { detail: this.score }));
+						if (Math.random() > 0.5)
+							dispatchEvent(new CustomEvent("playMoney1Sound"));
+						else
+							dispatchEvent(new CustomEvent("playMoney2Sound"));
 						this.collectibles = this.collectibles.filter(val => val != c);
 						this.sprites = this.sprites.filter(val => val != c);
 						break;
@@ -619,6 +629,7 @@ export default class Renderer {
 							this.HP += 30;
 							if (this.HP > 100) this.HP = 100;
 							dispatchEvent(new CustomEvent("healthChanged", { detail: this.HP }));
+							dispatchEvent(new CustomEvent("playHealSound"));
 							this.collectibles = this.collectibles.filter(val => val != c);
 							this.sprites = this.sprites.filter(val => val != c);
 						}
@@ -627,16 +638,19 @@ export default class Renderer {
 						if (this.HP < 100) {
 							this.HP = 100;
 							dispatchEvent(new CustomEvent("healthChanged", { detail: this.HP }));
+							dispatchEvent(new CustomEvent("playHealSound"));
 							this.collectibles = this.collectibles.filter(val => val != c);
 							this.sprites = this.sprites.filter(val => val != c);
 						}
 						break;
 					case CollectibleTypes.Rifle:
+						dispatchEvent(new CustomEvent("playCollectGunSound"));
 						this.hasRifle = true;
 						this.collectibles = this.collectibles.filter(val => val.config.typeExtended != CollectibleTypes.Rifle);
 						this.sprites = this.sprites.filter(val => val != c);
 						break;
 					case CollectibleTypes.Machinegun:
+						dispatchEvent(new CustomEvent("playCollectGunSound"));
 						this.hasMachinegun = true;
 						this.collectibles = this.collectibles.filter(val => val.config.typeExtended != CollectibleTypes.Machinegun);
 						this.sprites = this.sprites.filter(val => val != c);
@@ -651,6 +665,10 @@ export default class Renderer {
 			&& this.playerMovement.shooting && !this.waitForReady && !this.waitForTriggerRelease) {
 			if (this.currentWeapon == Weapons.Knife || this.currentWeapon == Weapons.Pistol) {
 				this.waitForReady = true;
+				if (this.currentWeapon == Weapons.Pistol)
+					dispatchEvent(new CustomEvent("playGunSound"));
+				else if (this.currentWeapon == Weapons.Knife)
+					dispatchEvent(new CustomEvent("playKnifeSound"));
 				this.handUI.shootOnce(() => {
 					if (this.currentWeapon == Weapons.Pistol) {
 						this.ammo--;
@@ -666,6 +684,7 @@ export default class Renderer {
 				this.handUI.shootStart(() => {
 					this.ammo--;
 					dispatchEvent(new CustomEvent("ammoChanged", { detail: this.ammo }));
+					dispatchEvent(new CustomEvent("playGunSound"));
 					this.checkHit();
 					this.waitForReady = false;
 					if (this.ammo <= 0)
@@ -700,6 +719,10 @@ export default class Renderer {
 					}
 					enemy.HP -= damage;
 					if (enemy.HP <= 0) {
+						if (enemy.type == EnemyType.Soldier)
+							dispatchEvent(new CustomEvent("playDeathSound"));
+						else if (enemy.type == EnemyType.Dog)
+							dispatchEvent(new CustomEvent("playDogDeathSound"));
 						this.score += 100;
 						// gdy przeciwnik umiera, czasem zostawia magazynek
 						if (Math.random() > 0.5 && enemy.type == EnemyType.Soldier) {

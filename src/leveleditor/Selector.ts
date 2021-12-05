@@ -62,7 +62,6 @@ export default class Selectors {
 				case 'beam-of-light':
 				case 'chandelier':
 				case 'skeleton-hanging':
-				case 'dog-food':
 				case 'skeleton-lying':
 				case 'lamp':
 				case 'kitchen':
@@ -87,6 +86,7 @@ export default class Selectors {
 						collidable: false
 					});
 					break;
+				case 'dog-food':
 				case 'health-sm':
 					this.objects.push({
 						type: LevelElemType.Collectible,
