@@ -3,14 +3,9 @@ import Texture from '../gfx/texture.png';
 //@ts-ignore
 import Mappings from '../gfx/env_mappings.json';
 //@ts-ignore
-import Bg from "../gfx/hip-square.png";
-//@ts-ignore
 import "./style.css";
 import { Directions, LevelElem, LevelElemType } from "../utils";
 import Selectors from './Selector';
-
-document.body.style.backgroundImage = `url(${Bg})`;
-document.body.style.backgroundRepeat = "repeat";
 
 let Config = {
 	cellSize: 32,
