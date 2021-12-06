@@ -4,7 +4,7 @@ import Texture from '../gfx/texture.png';
 import Mappings from '../gfx/env_mappings.json';
 //@ts-ignore
 import "./style.css";
-import { Directions, LevelElem, LevelElemType } from "../utils";
+import { Directions, LevelElem, LevelElemType, WallTypes } from "../utils";
 import Selectors from './Selector';
 
 let Config = {
@@ -81,11 +81,17 @@ addEventListener('selectorChanged', ((e: CustomEvent) => {
 			val.style.backgroundImage = `url(${Texture})`;
 			val.style.backgroundPosition = `left ${-currElem!.texCoords[0].x}px top ${-currElem!.texCoords[0].y}px`;
 			let texIndex = 0;
+			switch (currElem?.config.typeExtended) {
+				case WallTypes.Wood: texIndex = 1; break;
+				case WallTypes.Brick: texIndex = 2; break;
+				case WallTypes.Rock: texIndex = 3; break;
+			}
 			let availableTextures = [
 				Mappings["woodwall"],
 				Mappings["brickwall"],
 				Mappings["rockwall"],
-				Mappings["doors-side"]
+				Mappings["doors-side"],
+				Mappings["exit-side"],
 			]
 			val.onclick = () => {
 				currElem!.texCoords[index] = availableTextures[texIndex];
@@ -293,7 +299,7 @@ exportButton.onclick = () => {
 			}
 			else {
 				elem = JSON.parse(JSON.stringify(elem));
-				if (elem!.type != LevelElemType.Wall && elem!.type != LevelElemType.Secret && elem!.type != LevelElemType.Door) {
+				if (elem!.type != LevelElemType.Wall && elem!.type != LevelElemType.Secret && elem!.type != LevelElemType.Door && elem!.type != LevelElemType.Exit) {
 					elem!.position.x += .5;
 					elem!.position.y += .5;
 				}

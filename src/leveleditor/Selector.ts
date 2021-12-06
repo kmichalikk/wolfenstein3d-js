@@ -16,17 +16,40 @@ export default class Selectors {
 		for (let [k, o] of Object.entries(Mappings)) {
 			switch (k) {
 				case 'woodwall':
+					this.objects.push({
+						type: LevelElemType.Wall,
+						config: {
+							typeExtended: WallTypes.Wood
+						},
+						position: { x: 0, y: 0 },
+						texCoords: [o as Vec2Interface, o as Vec2Interface, o as Vec2Interface, o as Vec2Interface],
+						collidable: true
+					});
+					break;
 				case 'brickwall':
+					this.objects.push({
+						type: LevelElemType.Wall,
+						config: {
+							typeExtended: WallTypes.Brick
+						},
+						position: { x: 0, y: 0 },
+						texCoords: [o as Vec2Interface, o as Vec2Interface, o as Vec2Interface, o as Vec2Interface],
+						collidable: true
+					});
+					break;
 				case 'rockwall':
 					this.objects.push({
 						type: LevelElemType.Wall,
-						config: {},
+						config: {
+							typeExtended: WallTypes.Rock
+						},
 						position: { x: 0, y: 0 },
 						texCoords: [o as Vec2Interface, o as Vec2Interface, o as Vec2Interface, o as Vec2Interface],
 						collidable: true
 					});
 					break;
 				case 'doors':
+				case 'exit-door':
 					this.objects.push({
 						type: LevelElemType.Door,
 						config: {
@@ -210,6 +233,14 @@ export default class Selectors {
 						collidable: false
 					});
 					break;
+				case 'exit-off':
+					this.objects.push({
+						type: LevelElemType.Exit,
+						config: {},
+						position: { x: 0, y: 0 },
+						texCoords: [o as Vec2Interface, o as Vec2Interface, o as Vec2Interface, o as Vec2Interface],
+						collidable: true
+					})
 			}
 		}
 

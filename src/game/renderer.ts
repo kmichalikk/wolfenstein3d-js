@@ -26,6 +26,8 @@ export default class Renderer {
 	doors: LevelElem[] = [];
 	// sekrety
 	secrets: LevelElem[] = [];
+	// wyjścia
+	exits: LevelElem[] = [];
 	// przeciwnicy
 	enemies: BaseEnemy[] = [];
 	// znajdźki
@@ -129,6 +131,9 @@ export default class Renderer {
 					d.config.perpOffset = 0;
 					this.secrets.push(d);
 				}
+				else if (d && d.type == LevelElemType.Exit) {
+					this.exits.push(d);
+				}
 				else if (d && d.type == LevelElemType.Enemy) {
 					if (d.config.enemyType == EnemyType.Soldier) {
 						let soldier = new Soldier(new Vec2(d.position.x, d.position.y), new Vec2(0, -1));
@@ -202,7 +207,7 @@ export default class Renderer {
 			else if (this.levelData.data[currentTile.x][currentTile.y] !== null) {
 				// trafiliśmy na coś
 				let obj = this.levelData.data[currentTile.x][currentTile.y]!;
-				if (obj.type === LevelElemType.Wall) {
+				if (obj.type === LevelElemType.Wall || obj.type === LevelElemType.Exit) {
 					isHit = true;
 					continue;
 				}
@@ -603,6 +608,19 @@ export default class Renderer {
 		}
 	}
 
+	handleFinish = () => {
+		for (let exit of this.exits) {
+			let subtractVec = this.playerPos.subtractVec(new Vec2(exit.position.x + 0.5, exit.position.y + 0.5));
+			if (subtractVec.length() <= 1.2 && this.playerMovement.interaction) {
+				exit.texCoords = exit.texCoords.map(val => Mappings["exit-on"]);
+				setTimeout(() => {
+					location.reload();
+				}, 500)
+				// koniec
+			}
+		}
+	}
+
 	handleCollectibles = () => {
 		for (let c of this.collectibles) {
 			if (this.playerPos.subtractVec(c.position as Vec2).length() < 0.5) {
@@ -752,6 +770,7 @@ export default class Renderer {
 		this.movePlayer();
 		this.openDoors();
 		this.uncoverSecrets();
+		this.handleFinish();
 		this.handleCollectibles();
 		this.handleShooting();
 		for (let enemy of this.enemies)

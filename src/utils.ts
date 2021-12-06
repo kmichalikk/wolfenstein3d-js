@@ -83,7 +83,8 @@ enum LevelElemType {
 	Enemy,
 	Player,
 	ObjectNonCollidable,
-	ObjectCollidable
+	ObjectCollidable,
+	Exit
 }
 
 interface LevelElem {
