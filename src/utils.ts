@@ -95,7 +95,8 @@ interface LevelElem {
 		typeExtended?: number,
 		enemyType?: number,
 		direction?: number,
-		cooldown?: number
+		cooldown?: number,
+		value?: number
 	};
 	position: Vec2Interface;
 	texCoords: Vec2Interface[];

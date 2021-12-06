@@ -104,7 +104,7 @@ export default class Soldier extends BaseEnemy {
 							setTimeout(() => {
 								// nie zawsze trafia
 								if (Math.random() > 0.1) {
-									dispatchEvent(new CustomEvent("shotPlayer", { detail: 10 }));
+									dispatchEvent(new CustomEvent("shotPlayer", { detail: 8 }));
 								}
 							}, 200)
 						}

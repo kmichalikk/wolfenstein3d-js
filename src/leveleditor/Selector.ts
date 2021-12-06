@@ -166,13 +166,47 @@ export default class Selectors {
 					});
 					break;
 				case 'gold1':
+					this.objects.push({
+						type: LevelElemType.Collectible,
+						config: {
+							typeExtended: CollectibleTypes.Gold,
+							value: 100
+						},
+						position: { x: 0, y: 0 },
+						texCoords: [o as Vec2Interface],
+						collidable: false
+					});
+					break;
 				case 'gold2':
+					this.objects.push({
+						type: LevelElemType.Collectible,
+						config: {
+							typeExtended: CollectibleTypes.Gold,
+							value: 125
+						},
+						position: { x: 0, y: 0 },
+						texCoords: [o as Vec2Interface],
+						collidable: false
+					});
+					break;
 				case 'gold3':
+					this.objects.push({
+						type: LevelElemType.Collectible,
+						config: {
+							typeExtended: CollectibleTypes.Gold,
+							value: 300
+						},
+						position: { x: 0, y: 0 },
+						texCoords: [o as Vec2Interface],
+						collidable: false
+					});
+					break;
 				case 'gold4':
 					this.objects.push({
 						type: LevelElemType.Collectible,
 						config: {
-							typeExtended: CollectibleTypes.Gold
+							typeExtended: CollectibleTypes.Gold,
+							value: 400
 						},
 						position: { x: 0, y: 0 },
 						texCoords: [o as Vec2Interface],

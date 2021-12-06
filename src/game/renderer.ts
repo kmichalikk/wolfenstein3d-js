@@ -704,7 +704,7 @@ export default class Renderer {
 						this.sprites = this.sprites.filter(val => val != c);
 						break;
 					case CollectibleTypes.Gold:
-						this.score += 100;
+						this.score += c.config.value!;
 						dispatchEvent(new CustomEvent("scoreChanged", { detail: this.score }));
 						if (Math.random() > 0.5)
 							dispatchEvent(new CustomEvent("playMoney1Sound"));
@@ -806,7 +806,8 @@ export default class Renderer {
 						case Weapons.Rifle: damage = 80; break;
 						case Weapons.Machinegun: damage = 120; break;
 					}
-					enemy.HP -= damage;
+					// damage + critical ( bardzo rzadko )
+					enemy.HP -= damage + (Math.random() < 0.05 ? 20 : 0);
 					if (enemy.HP <= 0) {
 						if (enemy.type == EnemyType.Soldier)
 							dispatchEvent(new CustomEvent("playDeathSound"));
