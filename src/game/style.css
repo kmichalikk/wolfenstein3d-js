@@ -17,7 +17,6 @@ body {
 
 .game-canvas {
 	background-color: #636363;
-	position: relative;
 	border-width: 4px;
 	border-style: solid;
 	border-top-color: #333;

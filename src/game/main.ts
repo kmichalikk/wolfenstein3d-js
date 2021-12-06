@@ -12,6 +12,7 @@ let container = document.createElement("div");
 container.classList.add("game-container");
 document.body.append(container);
 container.append(renderer.canvas);
+container.append(renderer.fadeoutCanvas);
 
 let infoBar = document.createElement("div");
 infoBar.classList.add('info-bar');

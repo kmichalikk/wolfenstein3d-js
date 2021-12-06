@@ -15,8 +15,10 @@ interface LevelFile {
 
 export default class Renderer {
 	canvas: HTMLCanvasElement; //obszar renderowania gry
+	fadeoutCanvas: HTMLCanvasElement;
 	canvasSize: Vec2Interface;
 	context: CanvasRenderingContext2D;
+	fadeoutContext: CanvasRenderingContext2D;
 	// assety itp
 	texture: HTMLImageElement;
 	levelData: LevelFile; // poziom można wczytać, nie jest zapisany na twardo
@@ -72,6 +74,14 @@ export default class Renderer {
 		this.canvasSize = canvasSize;
 		this.context = this.canvas.getContext("2d")!;
 		this.context.imageSmoothingEnabled = false;
+
+		// canvas dodatkowy
+		this.fadeoutCanvas = document.createElement("canvas");
+		this.fadeoutCanvas.classList.add("fadeout-canvas");
+		this.fadeoutCanvas.style.position = 'absolute';
+		this.fadeoutContext = this.fadeoutCanvas.getContext("2d")!;
+		this.fadeoutContext.imageSmoothingEnabled = false;
+
 		//assety	
 		this.texture = new Image();
 		this.texture.src = Texture;
@@ -102,6 +112,15 @@ export default class Renderer {
 			}
 			dispatchEvent(new CustomEvent("healthChanged", { detail: this.HP }));
 		}) as EventListener);
+	}
+
+	resizeFadeoutCanvas = () => {
+		this.fadeoutCanvas.width = this.canvas.width;
+		this.fadeoutCanvas.height = this.canvas.height;
+		this.fadeoutCanvas.style.width = this.canvas.clientWidth + "px";
+		this.fadeoutCanvas.style.height = this.canvas.clientHeight + "px";
+		this.fadeoutCanvas.style.left = this.canvas.offsetLeft + 4 + "px";
+		this.fadeoutCanvas.style.top = this.canvas.offsetTop + 4 + "px";
 	}
 
 	loadLevel = (data: LevelFile) => {
@@ -865,11 +884,45 @@ export default class Renderer {
 		}
 
 		this.handUI.draw();
-		requestAnimationFrame(this.drawFunc);
+		if (this.HP > 0) {
+			requestAnimationFrame(this.drawFunc);
+		}
+		else {
+			this.HP = 0;
+			dispatchEvent(new CustomEvent("healthChanged", { detail: this.HP }));
+			this.fadeInDeathScreen().then(() => {
+				setTimeout(() => {
+					location.reload();
+				}, 1000);
+			});
+		}
+	}
+
+	fadeInDeathScreen = () => {
+		this.fadeoutContext.fillStyle = "#ff0000";
+		return new Promise((resolve, reject) => {
+			let i = 0;
+			let interval = setInterval(() => {
+				for (let i = 0; i < 1000; i++) {
+					let x = Math.round(Math.random() * this.canvasSize.x);
+					let y = Math.round(Math.random() * this.canvasSize.y);
+					this.fadeoutContext.fillRect(x, y, 2, 2);
+				}
+				i++;
+				if (i > 100) {
+					clearInterval(interval);
+					this.fadeoutContext.fillRect(0, 0, this.canvasSize.x, this.canvasSize.y);
+					resolve(true);
+				}
+			})
+		})
 	}
 
 	startGameLoop = () => {
 		requestAnimationFrame(this.drawFunc);
+		setTimeout(() => {
+			this.resizeFadeoutCanvas();
+		}, 1000)
 	}
 
 	handleKeyboardDown = (event: KeyboardEvent) => {
