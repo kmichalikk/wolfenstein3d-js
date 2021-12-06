@@ -79,7 +79,6 @@ export default class Soldier extends BaseEnemy {
 							}
 							else {
 								// teraz to już albo on albo gracz - stoi i strzela
-								////console.log("*shooting*");
 								this.speed = 0;
 								this.nextDecisionCooldown = 24;
 								this.frame = "attack0";
@@ -88,7 +87,7 @@ export default class Soldier extends BaseEnemy {
 								setTimeout(() => {
 									// nie zawsze trafia
 									if (Math.random() > 0.1) {
-										dispatchEvent(new CustomEvent("shotPlayer", { detail: 10 }));
+										dispatchEvent(new CustomEvent("shotPlayer", { detail: 8 }));
 									}
 								}, 200)
 							}

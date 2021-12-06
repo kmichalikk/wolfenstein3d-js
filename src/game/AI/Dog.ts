@@ -57,7 +57,7 @@ export default class Dog extends BaseEnemy {
 						this.nextDecisionCooldown = 24;
 						dispatchEvent(new CustomEvent("playDogAttackSound"));
 						setTimeout(() => {
-							dispatchEvent(new CustomEvent("shotPlayer", { detail: Math.round(Math.random() * 2) + 6 }));
+							dispatchEvent(new CustomEvent("shotPlayer", { detail: Math.round(Math.random() * 2) + 4 }));
 						}, 200)
 					}
 				}

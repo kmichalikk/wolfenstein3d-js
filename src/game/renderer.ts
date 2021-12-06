@@ -144,6 +144,7 @@ export default class Renderer {
 				if (d && d.type == LevelElemType.Door) {
 					d.config.openness = 0;
 					d.config.perpOffset = 0.5;
+					d.config.cooldown = 0;
 					this.doors.push(d);
 				}
 				else if (d && d.type == LevelElemType.Secret) {
@@ -347,7 +348,6 @@ export default class Renderer {
 			if (softCollision.collidedWith!.type == LevelElemType.Door || softCollision.collidedWith!.type == LevelElemType.Secret) {
 				if (softCollision.facingDirection == Directions.North || softCollision.facingDirection == Directions.South) {
 					if (ray.y > 0) {
-						// if (take1.collisionPos.y - softCollision.collisionPos.y < softCollision.collidedWith!.perpOffset!) {
 						if (Math.floor(Math.abs(softCollision.collisionPos.x)) != Math.floor(softCollision.collidedWith?.config.perpOffset! / ray.y * ray.x + softCollision.collisionPos.x)) {
 							continue;
 						}
@@ -356,17 +356,26 @@ export default class Renderer {
 							collision.collisionPos.y += softCollision.collidedWith!.config.perpOffset!;
 							collision.distance += softCollision.collidedWith!.config.perpOffset! / ray.y;
 							this._fixTexOffset(ray, collision, softCollision.collidedWith!.config.perpOffset!);
-							if (collision.collidedWith!.type == LevelElemType.Door && collision.texOffset > collision.collidedWith!.config.openness!) {
+							if (collision.collidedWith!.type == LevelElemType.Door
+								&& collision.facingDirection == Directions.North
+								&& collision.texOffset > collision.collidedWith!.config.openness!) {
 								collision.texOffset -= collision.collidedWith!.config.openness!;
+								collision.texOffset = 1 - collision.texOffset;
+								return collision;
+							}
+							else if (collision.collidedWith!.type == LevelElemType.Door
+								&& collision.facingDirection == Directions.South
+								&& collision.texOffset < 1 - collision.collidedWith!.config.openness!) {
+								collision.texOffset += collision.collidedWith!.config.openness!;
 								return collision;
 							}
 							else if (collision.collidedWith!.type == LevelElemType.Secret) {
 								return collision;
 							}
+							//else idziemy dalej
 						}
 					}
 					else {
-						// if (softCollision.collisionPos.y - take1.collisionPos.y < softCollision.collidedWith!.perpOffset! - 1) {
 						if (Math.floor(Math.abs(softCollision.collisionPos.x)) != Math.floor(softCollision.collidedWith?.config.perpOffset! / ray.y * -ray.x + softCollision.collisionPos.x)) {
 							continue;
 						}
@@ -375,19 +384,28 @@ export default class Renderer {
 							collision.collisionPos.y -= softCollision.collidedWith!.config.perpOffset!;
 							collision.distance += softCollision.collidedWith!.config.perpOffset! / -ray.y;
 							this._fixTexOffset(ray, collision, softCollision.collidedWith!.config.perpOffset!);
-							if (collision.collidedWith!.type == LevelElemType.Door && collision.texOffset > collision.collidedWith!.config.openness!) {
+							if (collision.collidedWith!.type == LevelElemType.Door
+								&& collision.facingDirection == Directions.North
+								&& collision.texOffset > collision.collidedWith!.config.openness!) {
 								collision.texOffset -= collision.collidedWith!.config.openness!;
+								collision.texOffset = 1 - collision.texOffset;
+								return collision;
+							}
+							else if (collision.collidedWith!.type == LevelElemType.Door
+								&& collision.facingDirection == Directions.South
+								&& collision.texOffset < 1 - collision.collidedWith!.config.openness!) {
+								collision.texOffset += collision.collidedWith!.config.openness!;
 								return collision;
 							}
 							else if (collision.collidedWith!.type == LevelElemType.Secret) {
 								return collision;
 							}
+							//else idziemy dalej
 						}
 					}
 				}
 				else if (softCollision.facingDirection == Directions.East || softCollision.facingDirection == Directions.West) {
 					if (ray.x > 0) {
-						// if (take1.collisionPos.x - softCollision.collisionPos.x < softCollision.collidedWith!.perpOffset!) {
 						if (Math.floor(Math.abs(softCollision.collisionPos.y)) != Math.floor(softCollision.collidedWith?.config.perpOffset! / ray.x * ray.y + softCollision.collisionPos.y)) {
 							continue;
 						}
@@ -396,17 +414,26 @@ export default class Renderer {
 							collision.collisionPos.x += softCollision.collidedWith!.config.perpOffset!;
 							collision.distance += softCollision.collidedWith!.config.perpOffset! / ray.x;
 							this._fixTexOffset(ray, collision, softCollision.collidedWith!.config.perpOffset!);
-							if (collision.collidedWith!.type == LevelElemType.Door && collision.texOffset > collision.collidedWith!.config.openness!) {
+							if (collision.collidedWith!.type == LevelElemType.Door
+								&& collision.facingDirection == Directions.West
+								&& collision.texOffset > collision.collidedWith!.config.openness!) {
 								collision.texOffset -= collision.collidedWith!.config.openness!;
+								collision.texOffset = 1 - collision.texOffset;
+								return collision;
+							}
+							else if (collision.collidedWith!.type == LevelElemType.Door
+								&& collision.facingDirection == Directions.East
+								&& collision.texOffset < 1 - collision.collidedWith!.config.openness!) {
+								collision.texOffset += collision.collidedWith!.config.openness!;
 								return collision;
 							}
 							else if (collision.collidedWith!.type == LevelElemType.Secret) {
 								return collision;
 							}
+							//else idziemy dalej
 						}
 					}
 					else {
-						// if (softCollision.collisionPos.x - take1.collisionPos.x < softCollision.collidedWith!.perpOffset! - 1) {
 						if (Math.floor(Math.abs(softCollision.collisionPos.y)) != Math.floor(softCollision.collidedWith?.config.perpOffset! / ray.x * -ray.y + softCollision.collisionPos.y)) {
 							continue;
 						}
@@ -415,13 +442,23 @@ export default class Renderer {
 							collision.collisionPos.x -= softCollision.collidedWith!.config.perpOffset!;
 							collision.distance += softCollision.collidedWith!.config.perpOffset! / -ray.x;
 							this._fixTexOffset(ray, collision, softCollision.collidedWith!.config.perpOffset!);
-							if (collision.texOffset > collision.collidedWith!.config.openness!) {
+							if (collision.collidedWith!.type == LevelElemType.Door
+								&& collision.facingDirection == Directions.West
+								&& collision.texOffset > collision.collidedWith!.config.openness!) {
 								collision.texOffset -= collision.collidedWith!.config.openness!;
+								collision.texOffset = 1 - collision.texOffset;
+								return collision;
+							}
+							else if (collision.collidedWith!.type == LevelElemType.Door
+								&& collision.facingDirection == Directions.East
+								&& collision.texOffset < 1 - collision.collidedWith!.config.openness!) {
+								collision.texOffset += collision.collidedWith!.config.openness!;
 								return collision;
 							}
 							else if (collision.collidedWith!.type == LevelElemType.Secret) {
 								return collision;
 							}
+							//else idziemy dalej
 						}
 					}
 				}
@@ -482,7 +519,8 @@ export default class Renderer {
 
 	openDoors = () => {
 		for (let door of this.doors) {
-			if (this.playerPos.subtractVec(new Vec2(door.position.x + 0.5, door.position.y + 0.5)).length() < 1
+			let distance = this.playerPos.subtractVec(new Vec2(door.position.x + 0.5, door.position.y + 0.5)).length();
+			if (distance < 1
 				&& door.config.openness! == 0
 				&& this.playerMovement.interaction) {
 				dispatchEvent(new CustomEvent("playDoorSlideSound"));
@@ -491,8 +529,22 @@ export default class Renderer {
 					if (door.config.openness! >= 1) {
 						clearInterval(interval);
 						door.config.openness = 1;
+						door.config.cooldown = 400;
 					}
 				}, 20);
+			}
+			else if (distance > 1 && door.config.cooldown == 0 && door.config.openness == 1) {
+				dispatchEvent(new CustomEvent("playDoorSlideSound"));
+				let interval = setInterval(() => {
+					door.config.openness! -= 0.01;
+					if (door.config.openness! <= 0) {
+						clearInterval(interval);
+						door.config.openness = 0;
+					}
+				}, 20);
+			}
+			else if (door.config.cooldown! > 0) {
+				door.config.cooldown!--;
 			}
 		}
 	}
