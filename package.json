@@ -14,6 +14,7 @@
   "scripts": {
     "dev": "webpack --mode development",
     "prod": "webpack --mode production",
-    "serve": "webpack serve --mode development"
+    "serve": "webpack serve --mode development",
+    "serveprod": "webpack serve --mode production"
   }
 }
